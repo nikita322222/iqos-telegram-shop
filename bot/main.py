@@ -18,7 +18,13 @@ dp = Dispatcher()
 async def check_user_access(telegram_id: int) -> bool:
     """Проверка доступа пользователя через Backend API"""
     try:
-        async with aiohttp.ClientSession() as session:
+        import ssl
+        ssl_context = ssl.create_default_context()
+        ssl_context.check_hostname = False
+        ssl_context.verify_mode = ssl.CERT_NONE
+        
+        connector = aiohttp.TCPConnector(ssl=ssl_context)
+        async with aiohttp.ClientSession(connector=connector) as session:
             async with session.get(
                 f"{config.BACKEND_URL}/api/users/check/{telegram_id}"
             ) as response:

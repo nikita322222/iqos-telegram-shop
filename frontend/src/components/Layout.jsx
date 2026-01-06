@@ -7,7 +7,7 @@ const Layout = ({ children, tg }) => {
   const cartCount = getTotalItems()
 
   const navItems = [
-    { path: '/catalog', label: 'Скидки', icon: '🏷️' },
+    { path: '/catalog', label: 'Каталог', icon: '📦' },
     { path: '/favorites', label: 'Избранное', icon: '❤️' },
     { path: '/', label: 'Главная', icon: '🏠' },
     { path: '/cart', label: 'Корзина', icon: '🛒', badge: cartCount },

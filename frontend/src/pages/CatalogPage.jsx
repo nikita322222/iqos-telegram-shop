@@ -7,10 +7,19 @@ const CatalogPage = ({ tg }) => {
   const [loading, setLoading] = useState(true)
   const [favorites, setFavorites] = useState(new Set())
   const [selectedCategory, setSelectedCategory] = useState(null)
+  const [showCategories, setShowCategories] = useState(true)
+
+  const categories = [
+    { name: 'Устройства', icon: '📱', color: '#3390ec' },
+    { name: 'Стики', icon: '🚬', color: '#34c759' },
+    { name: 'Аксессуары', icon: '🎒', color: '#ff9500' }
+  ]
 
   useEffect(() => {
-    loadData()
-  }, [selectedCategory])
+    if (!showCategories) {
+      loadData()
+    }
+  }, [selectedCategory, showCategories])
 
   const loadData = async () => {
     try {
@@ -51,7 +60,75 @@ const CatalogPage = ({ tg }) => {
     }
   }
 
-  const categories = ['Устройства', 'Стики', 'Аксессуары']
+  const handleCategoryClick = (categoryName) => {
+    setSelectedCategory(categoryName)
+    setShowCategories(false)
+    setLoading(true)
+  }
+
+  const handleBackToCategories = () => {
+    setShowCategories(true)
+    setSelectedCategory(null)
+    setProducts([])
+  }
+
+  if (showCategories) {
+    return (
+      <div>
+        <h1 className="page-title">Каталог</h1>
+        <p style={{ color: 'var(--tg-theme-hint-color, #999)', marginBottom: '20px' }}>
+          Выберите категорию товаров
+        </p>
+
+        <div style={{ display: 'grid', gap: '16px' }}>
+          {categories.map(category => (
+            <div
+              key={category.name}
+              onClick={() => handleCategoryClick(category.name)}
+              style={{
+                background: 'var(--tg-theme-secondary-bg-color, #f4f4f5)',
+                borderRadius: '16px',
+                padding: '24px',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '16px',
+                transition: 'transform 0.2s',
+                border: `2px solid ${category.color}20`
+              }}
+              onTouchStart={(e) => {
+                e.currentTarget.style.transform = 'scale(0.98)'
+              }}
+              onTouchEnd={(e) => {
+                e.currentTarget.style.transform = 'scale(1)'
+              }}
+            >
+              <div style={{
+                fontSize: '48px',
+                width: '64px',
+                height: '64px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                background: `${category.color}20`,
+                borderRadius: '12px'
+              }}>
+                {category.icon}
+              </div>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: '20px', fontWeight: '600', marginBottom: '4px' }}>
+                  {category.name}
+                </div>
+                <div style={{ fontSize: '14px', color: 'var(--tg-theme-hint-color, #999)' }}>
+                  Посмотреть товары →
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    )
+  }
 
   if (loading) {
     return <div className="loading">Загрузка...</div>
@@ -59,36 +136,21 @@ const CatalogPage = ({ tg }) => {
 
   return (
     <div>
-      <h1 className="page-title">Каталог</h1>
-      
-      <div style={{ display: 'flex', gap: '8px', marginBottom: '20px', overflowX: 'auto' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px' }}>
         <button
-          onClick={() => setSelectedCategory(null)}
-          className="btn"
+          onClick={handleBackToCategories}
           style={{
-            background: !selectedCategory ? 'var(--tg-theme-button-color)' : 'var(--tg-theme-secondary-bg-color)',
-            color: !selectedCategory ? 'white' : 'var(--tg-theme-text-color)',
-            padding: '8px 16px',
-            whiteSpace: 'nowrap'
+            background: 'var(--tg-theme-secondary-bg-color)',
+            border: 'none',
+            borderRadius: '12px',
+            padding: '12px',
+            fontSize: '20px',
+            cursor: 'pointer'
           }}
         >
-          Все
+          ←
         </button>
-        {categories.map(category => (
-          <button
-            key={category}
-            onClick={() => setSelectedCategory(category)}
-            className="btn"
-            style={{
-              background: selectedCategory === category ? 'var(--tg-theme-button-color)' : 'var(--tg-theme-secondary-bg-color)',
-              color: selectedCategory === category ? 'white' : 'var(--tg-theme-text-color)',
-              padding: '8px 16px',
-              whiteSpace: 'nowrap'
-            }}
-          >
-            {category}
-          </button>
-        ))}
+        <h1 className="page-title" style={{ margin: 0 }}>{selectedCategory}</h1>
       </div>
 
       {products.length === 0 ? (
