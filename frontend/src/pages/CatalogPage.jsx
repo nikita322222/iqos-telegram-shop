@@ -7,33 +7,33 @@ const CatalogPage = ({ tg }) => {
   const [loading, setLoading] = useState(true)
   const [favorites, setFavorites] = useState(new Set())
   const [selectedCategory, setSelectedCategory] = useState(null)
+  const [selectedMainCategory, setSelectedMainCategory] = useState(null)
   const [showCategories, setShowCategories] = useState(true)
+  const [showSubCategories, setShowSubCategories] = useState(false)
 
-  const categories = [
-    { name: 'Terea kz' },
-    { name: 'Парламент ru' },
-    { name: 'Heets kz' },
-    { name: 'FiiT ru/kz' },
-    { name: 'Terea arm' },
-    { name: 'Terea eu/ind' },
-    { name: 'IQOS LIL SOLID DUAL' },
-    { name: 'Iqos duos original' },
-    { name: 'Iqos Original One' },
-    { name: 'Iqos iluma one' },
-    { name: 'Iqos iluma' },
-    { name: 'Iqos iluma prime' },
-    { name: 'Iqos iluma i series prime' },
+  const mainCategories = [
+    {
+      name: 'Стики',
+      icon: '🚬',
+      subCategories: ['Terea kz', 'Парламент ru', 'Heets kz', 'FiiT ru/kz', 'Terea arm', 'Terea eu/ind']
+    },
+    {
+      name: 'Устройства',
+      icon: '📱',
+      subCategories: ['IQOS LIL SOLID DUAL', 'Iqos duos original', 'Iqos Original One', 'Iqos iluma one', 'Iqos iluma', 'Iqos iluma prime', 'Iqos iluma i series prime']
+    }
   ]
 
   useEffect(() => {
-    if (!showCategories) {
+    if (selectedCategory) {
       loadData()
     }
-  }, [selectedCategory, showCategories])
+  }, [selectedCategory])
 
   const loadData = async () => {
+    setLoading(true)
     try {
-      const params = selectedCategory ? { category: selectedCategory } : {}
+      const params = { category: selectedCategory }
       const [productsRes, favoritesRes] = await Promise.all([
         api.getProducts(params),
         api.getFavorites().catch(() => ({ data: [] }))
@@ -70,18 +70,30 @@ const CatalogPage = ({ tg }) => {
     }
   }
 
-  const handleCategoryClick = (categoryName) => {
-    setSelectedCategory(categoryName)
+  const handleMainCategoryClick = (mainCategory) => {
+    setSelectedMainCategory(mainCategory)
     setShowCategories(false)
-    setLoading(true)
+    setShowSubCategories(true)
   }
 
-  const handleBackToCategories = () => {
+  const handleSubCategoryClick = (categoryName) => {
+    setSelectedCategory(categoryName)
+    setShowSubCategories(false)
+  }
+
+  const handleBackToMain = () => {
     setShowCategories(true)
+    setShowSubCategories(false)
+    setSelectedMainCategory(null)
+  }
+
+  const handleBackToSub = () => {
+    setShowSubCategories(true)
     setSelectedCategory(null)
     setProducts([])
   }
 
+  // Показываем главные категории
   if (showCategories) {
     return (
       <div>
@@ -90,11 +102,86 @@ const CatalogPage = ({ tg }) => {
           Выберите категорию товаров
         </p>
 
-        <div className="product-grid">
-          {categories.map(category => (
+        <div style={{ display: 'grid', gap: '16px' }}>
+          {mainCategories.map(category => (
             <div
               key={category.name}
-              onClick={() => handleCategoryClick(category.name)}
+              onClick={() => handleMainCategoryClick(category)}
+              style={{
+                background: 'var(--tg-theme-secondary-bg-color, #f4f4f5)',
+                borderRadius: '16px',
+                padding: '24px',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '16px',
+                transition: 'transform 0.2s'
+              }}
+              onTouchStart={(e) => {
+                e.currentTarget.style.transform = 'scale(0.98)'
+              }}
+              onTouchEnd={(e) => {
+                e.currentTarget.style.transform = 'scale(1)'
+              }}
+            >
+              <div style={{
+                fontSize: '48px',
+                width: '64px',
+                height: '64px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                background: 'var(--tg-theme-button-color, #3390ec)20',
+                borderRadius: '12px'
+              }}>
+                {category.icon}
+              </div>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: '20px', fontWeight: '600', marginBottom: '4px' }}>
+                  {category.name}
+                </div>
+                <div style={{ fontSize: '14px', color: 'var(--tg-theme-hint-color, #999)' }}>
+                  {category.subCategories.length} категорий →
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    )
+  }
+
+  // Показываем подкатегории
+  if (showSubCategories) {
+    return (
+      <div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px' }}>
+          <button
+            onClick={handleBackToMain}
+            style={{
+              background: 'var(--tg-theme-secondary-bg-color)',
+              border: 'none',
+              borderRadius: '12px',
+              padding: '12px 16px',
+              fontSize: '18px',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '4px'
+            }}
+          >
+            ← Назад
+          </button>
+          <h1 className="page-title" style={{ margin: 0, fontSize: '20px' }}>
+            {selectedMainCategory.name}
+          </h1>
+        </div>
+
+        <div className="product-grid">
+          {selectedMainCategory.subCategories.map(subCategory => (
+            <div
+              key={subCategory}
+              onClick={() => handleSubCategoryClick(subCategory)}
               style={{
                 background: 'var(--tg-theme-secondary-bg-color, #f4f4f5)',
                 borderRadius: '16px',
@@ -123,7 +210,7 @@ const CatalogPage = ({ tg }) => {
                 display: 'flex',
                 alignItems: 'center'
               }}>
-                {category.name}
+                {subCategory}
               </div>
               
               <button
@@ -136,7 +223,7 @@ const CatalogPage = ({ tg }) => {
                 }}
                 onClick={(e) => {
                   e.stopPropagation()
-                  handleCategoryClick(category.name)
+                  handleSubCategoryClick(subCategory)
                 }}
               >
                 Открыть →
@@ -148,6 +235,7 @@ const CatalogPage = ({ tg }) => {
     )
   }
 
+  // Показываем товары
   if (loading) {
     return <div className="loading">Загрузка...</div>
   }
@@ -156,7 +244,7 @@ const CatalogPage = ({ tg }) => {
     <div>
       <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px' }}>
         <button
-          onClick={handleBackToCategories}
+          onClick={handleBackToSub}
           style={{
             background: 'var(--tg-theme-secondary-bg-color)',
             border: 'none',
