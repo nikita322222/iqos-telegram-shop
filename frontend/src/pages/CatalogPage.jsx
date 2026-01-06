@@ -10,9 +10,19 @@ const CatalogPage = ({ tg }) => {
   const [showCategories, setShowCategories] = useState(true)
 
   const categories = [
-    { name: 'Устройства', icon: '📱', color: '#3390ec' },
-    { name: 'Стики', icon: '🚬', color: '#34c759' },
-    { name: 'Аксессуары', icon: '🎒', color: '#ff9500' }
+    { name: 'Terea kz', image: 'https://via.placeholder.com/150?text=Terea+KZ' },
+    { name: 'Парламент ru', image: 'https://via.placeholder.com/150?text=Parliament+RU' },
+    { name: 'Heets kz', image: 'https://via.placeholder.com/150?text=Heets+KZ' },
+    { name: 'FiiT ru/kz', image: 'https://via.placeholder.com/150?text=FiiT' },
+    { name: 'Terea arm', image: 'https://via.placeholder.com/150?text=Terea+ARM' },
+    { name: 'Terea eu/ind', image: 'https://via.placeholder.com/150?text=Terea+EU' },
+    { name: 'IQOS LIL SOLID DUAL', image: 'https://via.placeholder.com/150?text=LIL+SOLID' },
+    { name: 'Iqos duos original', image: 'https://via.placeholder.com/150?text=Duos' },
+    { name: 'Iqos Original One', image: 'https://via.placeholder.com/150?text=Original+One' },
+    { name: 'Iqos iluma one', image: 'https://via.placeholder.com/150?text=Iluma+One' },
+    { name: 'Iqos iluma', image: 'https://via.placeholder.com/150?text=Iluma' },
+    { name: 'Iqos iluma prime', image: 'https://via.placeholder.com/150?text=Iluma+Prime' },
+    { name: 'Iqos iluma i series prime', image: 'https://via.placeholder.com/150?text=i+Series' },
   ]
 
   useEffect(() => {
@@ -80,48 +90,49 @@ const CatalogPage = ({ tg }) => {
           Выберите категорию товаров
         </p>
 
-        <div style={{ display: 'grid', gap: '16px' }}>
+        <div className="product-grid">
           {categories.map(category => (
             <div
               key={category.name}
               onClick={() => handleCategoryClick(category.name)}
-              style={{
-                background: 'var(--tg-theme-secondary-bg-color, #f4f4f5)',
-                borderRadius: '16px',
-                padding: '24px',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '16px',
-                transition: 'transform 0.2s',
-                border: `2px solid ${category.color}20`
-              }}
-              onTouchStart={(e) => {
-                e.currentTarget.style.transform = 'scale(0.98)'
-              }}
-              onTouchEnd={(e) => {
-                e.currentTarget.style.transform = 'scale(1)'
-              }}
+              className="product-card"
+              style={{ cursor: 'pointer' }}
             >
-              <div style={{
-                fontSize: '48px',
-                width: '64px',
-                height: '64px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                background: `${category.color}20`,
-                borderRadius: '12px'
-              }}>
-                {category.icon}
-              </div>
-              <div style={{ flex: 1 }}>
-                <div style={{ fontSize: '20px', fontWeight: '600', marginBottom: '4px' }}>
+              <img
+                src={category.image}
+                alt={category.name}
+                className="product-image"
+              />
+              
+              <div className="product-info">
+                <div className="product-name" style={{ 
+                  whiteSpace: 'normal',
+                  overflow: 'visible',
+                  textOverflow: 'clip',
+                  fontSize: '13px',
+                  lineHeight: '1.3',
+                  minHeight: '34px',
+                  display: 'flex',
+                  alignItems: 'center'
+                }}>
                   {category.name}
                 </div>
-                <div style={{ fontSize: '14px', color: 'var(--tg-theme-hint-color, #999)' }}>
-                  Посмотреть товары →
-                </div>
+                
+                <button
+                  className="btn btn-primary"
+                  style={{ 
+                    width: '100%', 
+                    padding: '8px',
+                    marginTop: '8px',
+                    fontSize: '14px'
+                  }}
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    handleCategoryClick(category.name)
+                  }}
+                >
+                  Открыть →
+                </button>
               </div>
             </div>
           ))}
@@ -143,20 +154,26 @@ const CatalogPage = ({ tg }) => {
             background: 'var(--tg-theme-secondary-bg-color)',
             border: 'none',
             borderRadius: '12px',
-            padding: '12px',
-            fontSize: '20px',
-            cursor: 'pointer'
+            padding: '12px 16px',
+            fontSize: '18px',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '4px'
           }}
         >
-          ←
+          ← Назад
         </button>
-        <h1 className="page-title" style={{ margin: 0 }}>{selectedCategory}</h1>
+        <h1 className="page-title" style={{ margin: 0, fontSize: '20px' }}>{selectedCategory}</h1>
       </div>
 
       {products.length === 0 ? (
         <div className="empty-state">
           <div className="empty-icon">📦</div>
           <p>Товары не найдены</p>
+          <p style={{ fontSize: '14px', marginTop: '8px', color: 'var(--tg-theme-hint-color)' }}>
+            В этой категории пока нет товаров
+          </p>
         </div>
       ) : (
         <div className="product-grid">
