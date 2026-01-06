@@ -1,13 +1,20 @@
+import { useNavigate } from 'react-router-dom'
 import { useCart } from '../context/CartContext'
 
 const ProductCard = ({ product, onFavoriteToggle, isFavorite }) => {
   const { addToCart } = useCart()
+  const navigate = useNavigate()
 
-  const handleAddToCart = () => {
+  const handleAddToCart = (e) => {
+    e.stopPropagation()
     addToCart(product)
     if (window.Telegram?.WebApp) {
       window.Telegram.WebApp.HapticFeedback.notificationOccurred('success')
     }
+  }
+
+  const handleCardClick = () => {
+    navigate(`/product/${product.id}`)
   }
 
   const getBadgeClass = (badge) => {
@@ -19,7 +26,7 @@ const ProductCard = ({ product, onFavoriteToggle, isFavorite }) => {
   }
 
   return (
-    <div className="product-card">
+    <div className="product-card" onClick={handleCardClick} style={{ cursor: 'pointer' }}>
       {product.badge && (
         <div className={`product-badge ${getBadgeClass(product.badge)}`}>
           {product.badge}
@@ -34,7 +41,7 @@ const ProductCard = ({ product, onFavoriteToggle, isFavorite }) => {
       
       <div className="product-info">
         <div className="product-name">{product.name}</div>
-        <div className="product-price">{product.price} ₽</div>
+        <div className="product-price">{product.price} BYN</div>
         
         <div style={{ display: 'flex', gap: '8px' }}>
           <button
@@ -47,7 +54,10 @@ const ProductCard = ({ product, onFavoriteToggle, isFavorite }) => {
           
           {onFavoriteToggle && (
             <button
-              onClick={() => onFavoriteToggle(product.id)}
+              onClick={(e) => {
+                e.stopPropagation()
+                onFavoriteToggle(product.id)
+              }}
               style={{
                 width: '40px',
                 height: '40px',

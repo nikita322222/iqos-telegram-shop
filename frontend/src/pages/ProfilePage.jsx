@@ -88,7 +88,7 @@ const ProfilePage = ({ tg }) => {
               }}>
                 <span style={{ fontWeight: '600' }}>Заказ №{order.id}</span>
                 <span style={{ color: 'var(--tg-theme-button-color)', fontWeight: '700' }}>
-                  {order.total_amount} ₽
+                  {order.total_amount} BYN
                 </span>
               </div>
               

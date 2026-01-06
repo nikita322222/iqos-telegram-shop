@@ -92,7 +92,7 @@ const CartPage = ({ tg }) => {
                 {item.name}
               </div>
               <div style={{ color: 'var(--tg-theme-button-color)', fontWeight: '700' }}>
-                {item.price * item.quantity} ₽
+                {item.price * item.quantity} BYN
               </div>
               
               <div className="quantity-controls">
@@ -202,7 +202,7 @@ const CartPage = ({ tg }) => {
           fontWeight: '700'
         }}>
           <span>Итого:</span>
-          <span>{getTotalPrice()} ₽</span>
+          <span>{getTotalPrice()} BYN</span>
         </div>
         
         <button
