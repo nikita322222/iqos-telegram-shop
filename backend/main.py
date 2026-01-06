@@ -36,10 +36,22 @@ def startup_event():
         # Проверяем есть ли пользователи
         user_count = db.query(models.User).count()
         if user_count == 0:
-            # Запускаем init_data
-            import init_data
-            init_data.main()
-            print("✅ Тестовые данные созданы автоматически")
+            # Создаем тестового пользователя
+            user = models.User(
+                telegram_id=576978144,
+                username="nikita_user",
+                first_name="Nikita",
+                last_name="Morozov",
+                is_active=True
+            )
+            db.add(user)
+            db.commit()
+            print("✅ Тестовый пользователь создан")
+        
+        # Проверяем есть ли товары
+        product_count = db.query(models.Product).count()
+        print(f"📦 Товаров в базе: {product_count}")
+        
     finally:
         db.close()
 
