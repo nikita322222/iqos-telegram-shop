@@ -352,3 +352,8 @@ def get_stats(db: Session = Depends(get_db)):
         "orders": orders_count,
         "categories": [{"name": cat, "count": count} for cat, count in categories]
     }
+
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8000)

@@ -1,62 +1,13 @@
-import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useCart } from '../context/CartContext'
-import { api } from '../api/client'
 
-const CartPage = ({ tg }) => {
-  const { cart, updateQuantity, removeFromCart, getTotalPrice, clearCart } = useCart()
-  const [isOrdering, setIsOrdering] = useState(false)
-  const [showOrderForm, setShowOrderForm] = useState(false)
-  const [orderData, setOrderData] = useState({
-    phone: '',
-    address: '',
-    comment: ''
-  })
+const CartPage = () => {
+  const navigate = useNavigate()
+  const { cart, updateQuantity, removeFromCart, getTotalPrice } = useCart()
 
-  const handleOrder = async () => {
+  const handleCheckout = () => {
     if (cart.length === 0) return
-
-    if (!showOrderForm) {
-      setShowOrderForm(true)
-      return
-    }
-
-    if (!orderData.phone || !orderData.address) {
-      if (tg) {
-        tg.showAlert('Заполните телефон и адрес доставки')
-      }
-      return
-    }
-
-    setIsOrdering(true)
-    
-    try {
-      const orderPayload = {
-        items: cart.map(item => ({
-          product_id: item.id,
-          quantity: item.quantity
-        })),
-        phone: orderData.phone,
-        delivery_address: orderData.address,
-        comment: orderData.comment
-      }
-
-      await api.createOrder(orderPayload)
-      
-      if (tg) {
-        tg.showAlert('Заказ успешно оформлен! Мы свяжемся с вами в ближайшее время.')
-      }
-      
-      clearCart()
-      setShowOrderForm(false)
-      setOrderData({ phone: '', address: '', comment: '' })
-    } catch (error) {
-      console.error('Ошибка оформления заказа:', error)
-      if (tg) {
-        tg.showAlert('Ошибка при оформлении заказа')
-      }
-    } finally {
-      setIsOrdering(false)
-    }
+    navigate('/checkout')
   }
 
   if (cart.length === 0) {
@@ -127,64 +78,6 @@ const CartPage = ({ tg }) => {
         ))}
       </div>
 
-      {showOrderForm && (
-        <div style={{ marginBottom: '20px' }}>
-          <h3 style={{ marginBottom: '12px' }}>Данные для доставки</h3>
-          
-          <input
-            type="tel"
-            placeholder="Телефон"
-            value={orderData.phone}
-            onChange={(e) => setOrderData({ ...orderData, phone: e.target.value })}
-            style={{
-              width: '100%',
-              padding: '12px',
-              marginBottom: '12px',
-              border: '1px solid var(--tg-theme-hint-color)',
-              borderRadius: '8px',
-              fontSize: '16px',
-              background: 'var(--tg-theme-bg-color)',
-              color: 'var(--tg-theme-text-color)'
-            }}
-          />
-          
-          <input
-            type="text"
-            placeholder="Адрес доставки"
-            value={orderData.address}
-            onChange={(e) => setOrderData({ ...orderData, address: e.target.value })}
-            style={{
-              width: '100%',
-              padding: '12px',
-              marginBottom: '12px',
-              border: '1px solid var(--tg-theme-hint-color)',
-              borderRadius: '8px',
-              fontSize: '16px',
-              background: 'var(--tg-theme-bg-color)',
-              color: 'var(--tg-theme-text-color)'
-            }}
-          />
-          
-          <textarea
-            placeholder="Комментарий к заказу (необязательно)"
-            value={orderData.comment}
-            onChange={(e) => setOrderData({ ...orderData, comment: e.target.value })}
-            style={{
-              width: '100%',
-              padding: '12px',
-              marginBottom: '12px',
-              border: '1px solid var(--tg-theme-hint-color)',
-              borderRadius: '8px',
-              fontSize: '16px',
-              minHeight: '80px',
-              background: 'var(--tg-theme-bg-color)',
-              color: 'var(--tg-theme-text-color)',
-              resize: 'vertical'
-            }}
-          />
-        </div>
-      )}
-
       <div style={{
         position: 'fixed',
         bottom: '70px',
@@ -206,12 +99,11 @@ const CartPage = ({ tg }) => {
         </div>
         
         <button
-          onClick={handleOrder}
-          disabled={isOrdering}
+          onClick={handleCheckout}
           className="btn btn-primary"
           style={{ width: '100%' }}
         >
-          {isOrdering ? 'Оформление...' : showOrderForm ? 'Подтвердить заказ' : 'Оформить заказ'}
+          Оформить заказ
         </button>
       </div>
     </div>

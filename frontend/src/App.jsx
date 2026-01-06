@@ -6,6 +6,7 @@ import CatalogPage from './pages/CatalogPage'
 import ProductPage from './pages/ProductPage'
 import FavoritesPage from './pages/FavoritesPage'
 import CartPage from './pages/CartPage'
+import CheckoutPage from './pages/CheckoutPage'
 import ProfilePage from './pages/ProfilePage'
 import { CartProvider } from './context/CartContext'
 
@@ -35,6 +36,7 @@ function App() {
             <Route path="/product/:id" element={<ProductPage tg={tg} />} />
             <Route path="/favorites" element={<FavoritesPage tg={tg} />} />
             <Route path="/cart" element={<CartPage tg={tg} />} />
+            <Route path="/checkout" element={<CheckoutPage tg={tg} />} />
             <Route path="/profile" element={<ProfilePage tg={tg} />} />
           </Routes>
         </Layout>

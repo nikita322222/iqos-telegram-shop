@@ -219,3 +219,61 @@ body {
   font-size: 64px;
   margin-bottom: 16px;
 }
+
+/* Формы */
+.form-input {
+  width: 100%;
+  padding: 12px;
+  margin-bottom: 12px;
+  border: 1px solid var(--tg-theme-hint-color, #e5e5e5);
+  border-radius: 8px;
+  font-size: 16px;
+  background: var(--tg-theme-bg-color, #ffffff);
+  color: var(--tg-theme-text-color, #000000);
+  font-family: inherit;
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: var(--tg-theme-button-color, #3390ec);
+}
+
+/* Кнопки выбора типа доставки */
+.delivery-type-btn {
+  flex: 1;
+  padding: 12px;
+  border: 2px solid var(--tg-theme-hint-color, #e5e5e5);
+  border-radius: 12px;
+  background: var(--tg-theme-bg-color, #ffffff);
+  color: var(--tg-theme-text-color, #000000);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.delivery-type-btn.active {
+  border-color: var(--tg-theme-button-color, #3390ec);
+  background: var(--tg-theme-button-color, #3390ec);
+  color: var(--tg-theme-button-text-color, #ffffff);
+}
+
+/* Кнопки способа оплаты */
+.payment-btn {
+  flex: 1;
+  padding: 12px;
+  border: 2px solid var(--tg-theme-hint-color, #e5e5e5);
+  border-radius: 12px;
+  background: var(--tg-theme-bg-color, #ffffff);
+  color: var(--tg-theme-text-color, #000000);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.payment-btn.active {
+  border-color: var(--tg-theme-button-color, #3390ec);
+  background: var(--tg-theme-button-color, #3390ec);
+  color: var(--tg-theme-button-text-color, #ffffff);
+}

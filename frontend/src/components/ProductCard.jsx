@@ -34,9 +34,12 @@ const ProductCard = ({ product, onFavoriteToggle, isFavorite }) => {
       )}
       
       <img
-        src={product.image_url || 'https://via.placeholder.com/300'}
+        src={product.image_url || 'https://via.placeholder.com/300?text=No+Image'}
         alt={product.name}
         className="product-image"
+        onError={(e) => {
+          e.target.src = 'https://via.placeholder.com/300?text=No+Image'
+        }}
       />
       
       <div className="product-info">

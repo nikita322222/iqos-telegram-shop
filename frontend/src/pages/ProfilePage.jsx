@@ -106,6 +106,35 @@ const ProfilePage = ({ tg }) => {
                 {getStatusText(order.status)}
               </div>
               
+              {/* Информация о доставке */}
+              {order.delivery_type && (
+                <div style={{ marginTop: '12px', fontSize: '14px' }}>
+                  <div style={{ fontWeight: '600', marginBottom: '4px' }}>
+                    {order.delivery_type === 'minsk' ? '🚚 Доставка по Минску' : '📦 Евро почта'}
+                  </div>
+                  <div style={{ color: 'var(--tg-theme-hint-color)' }}>
+                    {order.full_name && <div>ФИО: {order.full_name}</div>}
+                    {order.phone && <div>Телефон: {order.phone}</div>}
+                    {order.delivery_type === 'minsk' && order.delivery_address && (
+                      <>
+                        <div>Адрес: {order.delivery_address}</div>
+                        {order.delivery_time && <div>Время: {order.delivery_time}</div>}
+                        {order.delivery_date && <div>Дата: {order.delivery_date}</div>}
+                      </>
+                    )}
+                    {order.delivery_type === 'europost' && (
+                      <>
+                        {order.city && <div>Город: {order.city}</div>}
+                        {order.europost_office && <div>Отделение: {order.europost_office}</div>}
+                      </>
+                    )}
+                    {order.payment_method && (
+                      <div>Оплата: {order.payment_method === 'cash' ? '💵 Наличные' : '💎 USDT'}</div>
+                    )}
+                  </div>
+                </div>
+              )}
+              
               {order.items && order.items.length > 0 && (
                 <div style={{ marginTop: '12px', fontSize: '14px' }}>
                   <div style={{ fontWeight: '600', marginBottom: '4px' }}>Товары:</div>

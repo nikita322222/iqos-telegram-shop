@@ -116,7 +116,7 @@ const ProductPage = ({ tg }) => {
 
       <div style={{ position: 'relative', marginBottom: '20px' }}>
         <img
-          src={product.image_url || 'https://via.placeholder.com/400'}
+          src={product.image_url || 'https://via.placeholder.com/400?text=No+Image'}
           alt={product.name}
           style={{
             width: '100%',
@@ -124,6 +124,9 @@ const ProductPage = ({ tg }) => {
             aspectRatio: '1',
             objectFit: 'cover',
             background: '#e5e5e5'
+          }}
+          onError={(e) => {
+            e.target.src = 'https://via.placeholder.com/400?text=No+Image'
           }}
         />
         
