@@ -10,19 +10,19 @@ const CatalogPage = ({ tg }) => {
   const [showCategories, setShowCategories] = useState(true)
 
   const categories = [
-    { name: 'Terea kz', image: 'https://via.placeholder.com/150?text=Terea+KZ' },
-    { name: 'Парламент ru', image: 'https://via.placeholder.com/150?text=Parliament+RU' },
-    { name: 'Heets kz', image: 'https://via.placeholder.com/150?text=Heets+KZ' },
-    { name: 'FiiT ru/kz', image: 'https://via.placeholder.com/150?text=FiiT' },
-    { name: 'Terea arm', image: 'https://via.placeholder.com/150?text=Terea+ARM' },
-    { name: 'Terea eu/ind', image: 'https://via.placeholder.com/150?text=Terea+EU' },
-    { name: 'IQOS LIL SOLID DUAL', image: 'https://via.placeholder.com/150?text=LIL+SOLID' },
-    { name: 'Iqos duos original', image: 'https://via.placeholder.com/150?text=Duos' },
-    { name: 'Iqos Original One', image: 'https://via.placeholder.com/150?text=Original+One' },
-    { name: 'Iqos iluma one', image: 'https://via.placeholder.com/150?text=Iluma+One' },
-    { name: 'Iqos iluma', image: 'https://via.placeholder.com/150?text=Iluma' },
-    { name: 'Iqos iluma prime', image: 'https://via.placeholder.com/150?text=Iluma+Prime' },
-    { name: 'Iqos iluma i series prime', image: 'https://via.placeholder.com/150?text=i+Series' },
+    { name: 'Terea kz' },
+    { name: 'Парламент ru' },
+    { name: 'Heets kz' },
+    { name: 'FiiT ru/kz' },
+    { name: 'Terea arm' },
+    { name: 'Terea eu/ind' },
+    { name: 'IQOS LIL SOLID DUAL' },
+    { name: 'Iqos duos original' },
+    { name: 'Iqos Original One' },
+    { name: 'Iqos iluma one' },
+    { name: 'Iqos iluma' },
+    { name: 'Iqos iluma prime' },
+    { name: 'Iqos iluma i series prime' },
   ]
 
   useEffect(() => {
@@ -98,11 +98,18 @@ const CatalogPage = ({ tg }) => {
               className="product-card"
               style={{ cursor: 'pointer' }}
             >
-              <img
-                src={category.image}
-                alt={category.name}
-                className="product-image"
-              />
+              <div style={{
+                width: '100%',
+                aspectRatio: '1',
+                background: 'linear-gradient(135deg, var(--tg-theme-button-color, #3390ec) 0%, var(--tg-theme-button-color, #3390ec)dd 100%)',
+                borderRadius: '16px 16px 0 0',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '48px'
+              }}>
+                📦
+              </div>
               
               <div className="product-info">
                 <div className="product-name" style={{ 

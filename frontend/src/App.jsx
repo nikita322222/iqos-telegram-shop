@@ -30,7 +30,7 @@ function App() {
       <Router>
         <Layout tg={tg}>
           <Routes>
-            <Route path="/" element={<HomePage tg={tg} />} />
+            <Route path="/" element={<CatalogPage tg={tg} />} />
             <Route path="/catalog" element={<CatalogPage tg={tg} />} />
             <Route path="/product/:id" element={<ProductPage tg={tg} />} />
             <Route path="/favorites" element={<FavoritesPage tg={tg} />} />
