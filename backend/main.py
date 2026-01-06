@@ -168,8 +168,15 @@ def create_order(
     db_order = models.Order(
         user_id=user.id,
         total_amount=total_amount,
-        delivery_address=order_data.delivery_address,
+        delivery_type=order_data.delivery_type,
+        full_name=order_data.full_name,
         phone=order_data.phone,
+        payment_method=order_data.payment_method,
+        delivery_address=order_data.delivery_address,
+        delivery_time=order_data.delivery_time,
+        delivery_date=order_data.delivery_date,
+        city=order_data.city,
+        europost_office=order_data.europost_office,
         comment=order_data.comment
     )
     db.add(db_order)

@@ -44,8 +44,24 @@ class Order(Base):
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     total_amount = Column(Float, nullable=False)
     status = Column(String, default="pending")  # pending, confirmed, completed, cancelled
+    
+    # Тип доставки
+    delivery_type = Column(String, nullable=False)  # minsk, europost
+    
+    # Общие поля
+    full_name = Column(String, nullable=False)
+    phone = Column(String, nullable=False)
+    payment_method = Column(String, nullable=False)  # cash, usdt
+    
+    # Доставка по Минску
     delivery_address = Column(Text, nullable=True)
-    phone = Column(String, nullable=True)
+    delivery_time = Column(String, nullable=True)  # 13:00-17:00, 17:00-21:00
+    delivery_date = Column(String, nullable=True)
+    
+    # Евро почта
+    city = Column(String, nullable=True)
+    europost_office = Column(String, nullable=True)
+    
     comment = Column(Text, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)

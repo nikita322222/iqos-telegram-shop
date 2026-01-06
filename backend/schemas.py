@@ -65,8 +65,20 @@ class OrderItem(OrderItemBase):
 
 
 class OrderBase(BaseModel):
+    delivery_type: str  # minsk, europost
+    full_name: str
+    phone: str
+    payment_method: str  # cash, usdt
+    
+    # Доставка по Минску
     delivery_address: Optional[str] = None
-    phone: Optional[str] = None
+    delivery_time: Optional[str] = None
+    delivery_date: Optional[str] = None
+    
+    # Евро почта
+    city: Optional[str] = None
+    europost_office: Optional[str] = None
+    
     comment: Optional[str] = None
 
 
