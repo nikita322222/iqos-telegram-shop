@@ -10,8 +10,7 @@ def import_products_from_excel(file_path: str):
     """
     Импорт товаров из Excel файла
     
-    Формат Excel файла (ваш):
-    | Категория | Название | Цена | Описание | Картинка | Рейтинг | Артикул | Вес | Новинка |
+    Формат: Категория | Название | Цена | Описание | Картинка | Активно | Хит | Новинка
     """
     db = SessionLocal()
     
@@ -21,12 +20,6 @@ def import_products_from_excel(file_path: str):
         
         print(f"📊 Найдено строк в файле: {len(df)}")
         print(f"📋 Колонки: {', '.join(df.columns)}")
-        
-        # Проверяем наличие необходимых колонок
-        required_columns = ['Категория', 'Название', 'Цена']
-        for col in required_columns:
-            if col not in df.columns:
-                raise ValueError(f"Отсутствует обязательная колонка: {col}")
         
         imported_count = 0
         updated_count = 0
@@ -41,9 +34,18 @@ def import_products_from_excel(file_path: str):
                 
                 # Определяем бейдж
                 badge = None
+                if 'Хит' in df.columns and not pd.isna(row['Хит']):
+                    if str(row['Хит']).lower() in ['да', 'yes', '1', 'true', 'хит']:
+                        badge = 'ХИТ'
+                
                 if 'Новинка' in df.columns and not pd.isna(row['Новинка']):
                     if str(row['Новинка']).lower() in ['да', 'yes', '1', 'true', 'нов']:
                         badge = 'NEW'
+                
+                # Проверяем активность
+                is_active = True
+                if 'Активно' in df.columns and not pd.isna(row['Активно']):
+                    is_active = str(row['Активно']).lower() in ['да', 'yes', '1', 'true', 'активно']
                 
                 # Проверяем существует ли товар
                 existing_product = db.query(models.Product).filter(
@@ -58,7 +60,7 @@ def import_products_from_excel(file_path: str):
                     'badge': badge,
                     'stock': 100,  # По умолчанию
                     'image_url': str(row.get('Картинка', '')).strip() if not pd.isna(row.get('Картинка')) else None,
-                    'is_active': True
+                    'is_active': is_active
                 }
                 
                 if existing_product:
@@ -111,9 +113,10 @@ def export_products_to_excel(file_path: str = "products_export.xlsx"):
                 'Цена': product.price,
                 'Описание': product.description,
                 'Картинка': product.image_url,
-                'Бейдж': product.badge,
-                'Остаток': product.stock,
-                'Активен': product.is_active
+                'Активно': 'да' if product.is_active else 'нет',
+                'Хит': 'да' if product.badge == 'ХИТ' else '',
+                'Новинка': 'да' if product.badge == 'NEW' else '',
+                'Остаток': product.stock
             })
         
         df = pd.DataFrame(data)
@@ -130,8 +133,8 @@ if __name__ == "__main__":
     
     if len(sys.argv) < 2:
         print("Использование:")
-        print("  Импорт: python import_excel.py import products.xlsx")
-        print("  Экспорт: python import_excel.py export [products.xlsx]")
+        print("  Импорт: python import_excel.py import /путь/к/файлу.xlsx")
+        print("  Экспорт: python import_excel.py export [файл.xlsx]")
         sys.exit(1)
     
     command = sys.argv[1]

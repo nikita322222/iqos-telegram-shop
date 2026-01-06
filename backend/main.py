@@ -1,6 +1,7 @@
 from fastapi import FastAPI, Depends, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
+from sqlalchemy import func
 from typing import List
 
 import models
@@ -279,6 +280,56 @@ def remove_from_favorites(
     return {"message": "Товар удален из избранного"}
 
 
+@app.post("/api/admin/import-products")
+def import_products_bulk(products: List[schemas.ProductCreate], db: Session = Depends(get_db)):
+    """Массовый импорт товаров"""
+    imported = 0
+    updated = 0
+    
+    for product_data in products:
+        existing = db.query(models.Product).filter(
+            models.Product.name == product_data.name
+        ).first()
+        
+        if existing:
+            for key, value in product_data.dict().items():
+                setattr(existing, key, value)
+            updated += 1
+        else:
+            product = models.Product(**product_data.dict())
+            db.add(product)
+            imported += 1
+    
+    db.commit()
+    
+    return {
+        "imported": imported,
+        "updated": updated,
+        "total": imported + updated
+    }
+
+
 @app.get("/")
 def root():
     return {"message": "IQOS Shop API"}
+
+
+@app.get("/api/admin/stats")
+def get_stats(db: Session = Depends(get_db)):
+    """Статистика для проверки"""
+    users_count = db.query(models.User).count()
+    products_count = db.query(models.Product).count()
+    orders_count = db.query(models.Order).count()
+    
+    # Товары по категориям
+    categories = db.query(
+        models.Product.category,
+        func.count(models.Product.id)
+    ).group_by(models.Product.category).all()
+    
+    return {
+        "users": users_count,
+        "products": products_count,
+        "orders": orders_count,
+        "categories": [{"name": cat, "count": count} for cat, count in categories]
+    }
