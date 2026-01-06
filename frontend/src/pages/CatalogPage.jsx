@@ -95,52 +95,52 @@ const CatalogPage = ({ tg }) => {
             <div
               key={category.name}
               onClick={() => handleCategoryClick(category.name)}
-              className="product-card"
-              style={{ cursor: 'pointer' }}
+              style={{
+                background: 'var(--tg-theme-secondary-bg-color, #f4f4f5)',
+                borderRadius: '16px',
+                padding: '20px',
+                cursor: 'pointer',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'space-between',
+                minHeight: '140px',
+                transition: 'transform 0.2s'
+              }}
+              onTouchStart={(e) => {
+                e.currentTarget.style.transform = 'scale(0.98)'
+              }}
+              onTouchEnd={(e) => {
+                e.currentTarget.style.transform = 'scale(1)'
+              }}
             >
               <div style={{
-                width: '100%',
-                aspectRatio: '1',
-                background: 'linear-gradient(135deg, var(--tg-theme-button-color, #3390ec) 0%, var(--tg-theme-button-color, #3390ec)dd 100%)',
-                borderRadius: '16px 16px 0 0',
+                fontSize: '16px',
+                fontWeight: '600',
+                lineHeight: '1.3',
+                color: 'var(--tg-theme-text-color)',
+                marginBottom: '12px',
+                flex: 1,
                 display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: '48px'
+                alignItems: 'center'
               }}>
-                📦
+                {category.name}
               </div>
               
-              <div className="product-info">
-                <div className="product-name" style={{ 
-                  whiteSpace: 'normal',
-                  overflow: 'visible',
-                  textOverflow: 'clip',
-                  fontSize: '13px',
-                  lineHeight: '1.3',
-                  minHeight: '34px',
-                  display: 'flex',
-                  alignItems: 'center'
-                }}>
-                  {category.name}
-                </div>
-                
-                <button
-                  className="btn btn-primary"
-                  style={{ 
-                    width: '100%', 
-                    padding: '8px',
-                    marginTop: '8px',
-                    fontSize: '14px'
-                  }}
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    handleCategoryClick(category.name)
-                  }}
-                >
-                  Открыть →
-                </button>
-              </div>
+              <button
+                className="btn btn-primary"
+                style={{ 
+                  width: '100%', 
+                  padding: '10px',
+                  fontSize: '14px',
+                  fontWeight: '600'
+                }}
+                onClick={(e) => {
+                  e.stopPropagation()
+                  handleCategoryClick(category.name)
+                }}
+              >
+                Открыть →
+              </button>
             </div>
           ))}
         </div>
