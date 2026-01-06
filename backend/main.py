@@ -25,6 +25,22 @@ app.add_middleware(
 def startup_event():
     """Инициализация БД при старте"""
     init_db()
+    
+    # Автоматически создаем тестовые данные если БД пустая
+    from database import SessionLocal
+    import models
+    
+    db = SessionLocal()
+    try:
+        # Проверяем есть ли пользователи
+        user_count = db.query(models.User).count()
+        if user_count == 0:
+            # Запускаем init_data
+            import init_data
+            init_data.main()
+            print("✅ Тестовые данные созданы автоматически")
+    finally:
+        db.close()
 
 
 # === USER ENDPOINTS ===
