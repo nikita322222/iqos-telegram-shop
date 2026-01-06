@@ -7,46 +7,73 @@ const CheckoutPage = ({ tg }) => {
   const navigate = useNavigate()
   const { cart, getTotalPrice, clearCart } = useCart()
   const [isOrdering, setIsOrdering] = useState(false)
-  const [deliveryType, setDeliveryType] = useState('minsk') // minsk, europost
+  const [deliveryType, setDeliveryType] = useState('minsk')
+  const [errors, setErrors] = useState({})
   
   const [formData, setFormData] = useState({
     full_name: '',
     phone: '',
     payment_method: 'cash',
-    
-    // Минск
     delivery_address: '',
     delivery_time: '13:00-17:00',
     delivery_date: '',
-    
-    // Евро почта
     city: '',
     europost_office: '',
-    
     comment: ''
   })
+
+  const validateForm = () => {
+    const newErrors = {}
+    
+    // Проверка ФИО
+    if (!formData.full_name.trim()) {
+      newErrors.full_name = 'Введите ФИО'
+    } else if (formData.full_name.trim().length < 3) {
+      newErrors.full_name = 'ФИО слишком короткое'
+    }
+    
+    // Проверка телефона
+    if (!formData.phone.trim()) {
+      newErrors.phone = 'Введите телефон'
+    } else if (!/^[\d\s\+\-\(\)]+$/.test(formData.phone)) {
+      newErrors.phone = 'Неверный формат телефона'
+    }
+    
+    // Проверка полей доставки
+    if (deliveryType === 'minsk') {
+      if (!formData.delivery_address.trim()) {
+        newErrors.delivery_address = 'Введите адрес доставки'
+      }
+    } else if (deliveryType === 'europost') {
+      if (!formData.city.trim()) {
+        newErrors.city = 'Введите город'
+      }
+      if (!formData.europost_office.trim()) {
+        newErrors.europost_office = 'Введите отделение'
+      }
+    }
+    
+    setErrors(newErrors)
+    return Object.keys(newErrors).length === 0
+  }
+
+  const handleInputChange = (field, value) => {
+    setFormData({ ...formData, [field]: value })
+    // Убираем ошибку при вводе
+    if (errors[field]) {
+      setErrors({ ...errors, [field]: null })
+    }
+  }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
     
-    // Валидация
-    if (!formData.full_name || !formData.phone) {
+    if (!validateForm()) {
+      const firstError = Object.values(errors)[0]
       if (tg) {
-        tg.showAlert('Заполните ФИО и телефон')
-      }
-      return
-    }
-    
-    if (deliveryType === 'minsk' && !formData.delivery_address) {
-      if (tg) {
-        tg.showAlert('Заполните адрес доставки')
-      }
-      return
-    }
-    
-    if (deliveryType === 'europost' && (!formData.city || !formData.europost_office)) {
-      if (tg) {
-        tg.showAlert('Заполните город и отделение Евро почты')
+        tg.showAlert(firstError)
+      } else {
+        alert(firstError)
       }
       return
     }
@@ -60,29 +87,46 @@ const CheckoutPage = ({ tg }) => {
           quantity: item.quantity
         })),
         delivery_type: deliveryType,
-        full_name: formData.full_name,
-        phone: formData.phone,
+        full_name: formData.full_name.trim(),
+        phone: formData.phone.trim(),
         payment_method: formData.payment_method,
-        delivery_address: deliveryType === 'minsk' ? formData.delivery_address : null,
+        delivery_address: deliveryType === 'minsk' ? formData.delivery_address.trim() : null,
         delivery_time: deliveryType === 'minsk' ? formData.delivery_time : null,
-        delivery_date: deliveryType === 'minsk' ? formData.delivery_date : null,
-        city: deliveryType === 'europost' ? formData.city : null,
-        europost_office: deliveryType === 'europost' ? formData.europost_office : null,
-        comment: formData.comment
+        delivery_date: deliveryType === 'minsk' && formData.delivery_date ? formData.delivery_date : null,
+        city: deliveryType === 'europost' ? formData.city.trim() : null,
+        europost_office: deliveryType === 'europost' ? formData.europost_office.trim() : null,
+        comment: formData.comment.trim() || null
       }
 
       await api.createOrder(orderPayload)
       
       if (tg) {
-        tg.showAlert('Заказ успешно оформлен! Мы свяжемся с вами в ближайшее время.')
+        tg.showAlert('✅ Заказ успешно оформлен! Мы свяжемся с вами в ближайшее время.')
+      } else {
+        alert('✅ Заказ успешно оформлен!')
       }
       
       clearCart()
       navigate('/profile')
     } catch (error) {
       console.error('Ошибка оформления заказа:', error)
+      
+      let errorMessage = 'Ошибка при оформлении заказа'
+      
+      if (error.response?.data?.detail) {
+        if (typeof error.response.data.detail === 'string') {
+          errorMessage = error.response.data.detail
+        } else if (Array.isArray(error.response.data.detail)) {
+          errorMessage = error.response.data.detail.map(e => e.msg).join(', ')
+        }
+      } else if (error.message) {
+        errorMessage = error.message
+      }
+      
       if (tg) {
-        tg.showAlert('Ошибка при оформлении заказа')
+        tg.showAlert('❌ ' + errorMessage)
+      } else {
+        alert('❌ ' + errorMessage)
       }
     } finally {
       setIsOrdering(false)
@@ -95,99 +139,109 @@ const CheckoutPage = ({ tg }) => {
   }
 
   return (
-    <div style={{ paddingBottom: '100px' }}>
+    <div className="checkout-page">
       <h1 className="page-title">Оформление заказа</h1>
       
       {/* Выбор типа доставки */}
-      <div style={{ marginBottom: '24px' }}>
-        <h3 style={{ marginBottom: '12px' }}>Тип доставки</h3>
-        <div style={{ display: 'flex', gap: '12px' }}>
+      <div className="form-section">
+        <h3 className="section-subtitle">Тип доставки</h3>
+        <div className="delivery-type-selector">
           <button
+            type="button"
             onClick={() => setDeliveryType('minsk')}
             className={`delivery-type-btn ${deliveryType === 'minsk' ? 'active' : ''}`}
           >
-            🚚 Доставка по Минску
+            <span className="btn-icon">🚚</span>
+            <span className="btn-text">Доставка по Минску</span>
           </button>
           <button
+            type="button"
             onClick={() => setDeliveryType('europost')}
             className={`delivery-type-btn ${deliveryType === 'europost' ? 'active' : ''}`}
           >
-            📦 Евро почта
+            <span className="btn-icon">📦</span>
+            <span className="btn-text">Евро почта</span>
           </button>
         </div>
       </div>
 
       <form onSubmit={handleSubmit}>
         {/* Общие поля */}
-        <div style={{ marginBottom: '24px' }}>
-          <h3 style={{ marginBottom: '12px' }}>Контактные данные</h3>
+        <div className="form-section">
+          <h3 className="section-subtitle">Контактные данные</h3>
           
-          <input
-            type="text"
-            placeholder="Ваше ФИО *"
-            value={formData.full_name}
-            onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
-            className="form-input"
-            required
-          />
+          <div className="form-group">
+            <label className="form-label">
+              Ваше ФИО <span className="required">*</span>
+            </label>
+            <input
+              type="text"
+              placeholder="Иванов Иван Иванович"
+              value={formData.full_name}
+              onChange={(e) => handleInputChange('full_name', e.target.value)}
+              className={`form-input ${errors.full_name ? 'error' : ''}`}
+            />
+            {errors.full_name && <div className="error-message">{errors.full_name}</div>}
+          </div>
           
-          <input
-            type="tel"
-            placeholder="Контактный телефон *"
-            value={formData.phone}
-            onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-            className="form-input"
-            required
-          />
+          <div className="form-group">
+            <label className="form-label">
+              Контактный телефон <span className="required">*</span>
+            </label>
+            <input
+              type="tel"
+              placeholder="+375 (29) 123-45-67"
+              value={formData.phone}
+              onChange={(e) => handleInputChange('phone', e.target.value)}
+              className={`form-input ${errors.phone ? 'error' : ''}`}
+            />
+            {errors.phone && <div className="error-message">{errors.phone}</div>}
+          </div>
         </div>
 
         {/* Доставка по Минску */}
         {deliveryType === 'minsk' && (
-          <div style={{ marginBottom: '24px' }}>
-            <h3 style={{ marginBottom: '12px' }}>Адрес доставки</h3>
+          <div className="form-section">
+            <h3 className="section-subtitle">Адрес доставки</h3>
             
-            <input
-              type="text"
-              placeholder="Адрес доставки *"
-              value={formData.delivery_address}
-              onChange={(e) => setFormData({ ...formData, delivery_address: e.target.value })}
-              className="form-input"
-              required
-            />
+            <div className="form-group">
+              <label className="form-label">
+                Адрес доставки <span className="required">*</span>
+              </label>
+              <input
+                type="text"
+                placeholder="ул. Примерная, д. 1, кв. 1"
+                value={formData.delivery_address}
+                onChange={(e) => handleInputChange('delivery_address', e.target.value)}
+                className={`form-input ${errors.delivery_address ? 'error' : ''}`}
+              />
+              {errors.delivery_address && <div className="error-message">{errors.delivery_address}</div>}
+            </div>
             
-            <div style={{ marginBottom: '12px' }}>
-              <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px' }}>
-                Время доставки *
+            <div className="form-group">
+              <label className="form-label">
+                Время доставки <span className="required">*</span>
               </label>
               <select
                 value={formData.delivery_time}
-                onChange={(e) => setFormData({ ...formData, delivery_time: e.target.value })}
+                onChange={(e) => handleInputChange('delivery_time', e.target.value)}
                 className="form-input"
-                required
               >
-                <option value="13:00-17:00">13:00-17:00</option>
-                <option value="17:00-21:00">17:00-21:00</option>
+                <option value="13:00-17:00">13:00 - 17:00</option>
+                <option value="17:00-21:00">17:00 - 21:00</option>
               </select>
             </div>
             
-            <div style={{ marginBottom: '12px' }}>
-              <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px' }}>
-                Дата доставки
-              </label>
+            <div className="form-group">
+              <label className="form-label">Дата доставки</label>
               <input
                 type="date"
                 value={formData.delivery_date}
-                onChange={(e) => setFormData({ ...formData, delivery_date: e.target.value })}
+                onChange={(e) => handleInputChange('delivery_date', e.target.value)}
                 className="form-input"
+                min={new Date().toISOString().split('T')[0]}
               />
-              <div style={{
-                fontSize: '12px',
-                color: 'var(--tg-theme-hint-color)',
-                marginTop: '8px',
-                padding: '8px',
-                background: 'var(--tg-theme-secondary-bg-color)',
-                borderRadius: '8px'
-              }}>
+              <div className="info-message">
                 ℹ️ Заказы, оформленные до 12:45, будут доставлены сегодня в выбранный промежуток времени
               </div>
             </div>
@@ -196,102 +250,100 @@ const CheckoutPage = ({ tg }) => {
 
         {/* Евро почта */}
         {deliveryType === 'europost' && (
-          <div style={{ marginBottom: '24px' }}>
-            <h3 style={{ marginBottom: '12px' }}>Данные для отправки</h3>
+          <div className="form-section">
+            <h3 className="section-subtitle">Данные для отправки</h3>
             
-            <input
-              type="text"
-              placeholder="Город *"
-              value={formData.city}
-              onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-              className="form-input"
-              required
-            />
-            
-            <input
-              type="text"
-              placeholder="Отделение Евро почты *"
-              value={formData.europost_office}
-              onChange={(e) => setFormData({ ...formData, europost_office: e.target.value })}
-              className="form-input"
-              required
-            />
-            
-            <div style={{ marginBottom: '12px' }}>
-              <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px' }}>
-                Дата отправки
+            <div className="form-group">
+              <label className="form-label">
+                Город <span className="required">*</span>
               </label>
+              <input
+                type="text"
+                placeholder="Минск"
+                value={formData.city}
+                onChange={(e) => handleInputChange('city', e.target.value)}
+                className={`form-input ${errors.city ? 'error' : ''}`}
+              />
+              {errors.city && <div className="error-message">{errors.city}</div>}
+            </div>
+            
+            <div className="form-group">
+              <label className="form-label">
+                Отделение Евро почты <span className="required">*</span>
+              </label>
+              <input
+                type="text"
+                placeholder="№ 123"
+                value={formData.europost_office}
+                onChange={(e) => handleInputChange('europost_office', e.target.value)}
+                className={`form-input ${errors.europost_office ? 'error' : ''}`}
+              />
+              {errors.europost_office && <div className="error-message">{errors.europost_office}</div>}
+            </div>
+            
+            <div className="form-group">
+              <label className="form-label">Дата отправки</label>
               <input
                 type="date"
                 value={formData.delivery_date}
-                onChange={(e) => setFormData({ ...formData, delivery_date: e.target.value })}
+                onChange={(e) => handleInputChange('delivery_date', e.target.value)}
                 className="form-input"
+                min={new Date().toISOString().split('T')[0]}
               />
             </div>
           </div>
         )}
 
         {/* Способ оплаты */}
-        <div style={{ marginBottom: '24px' }}>
-          <h3 style={{ marginBottom: '12px' }}>Способ оплаты</h3>
-          <div style={{ display: 'flex', gap: '12px' }}>
+        <div className="form-section">
+          <h3 className="section-subtitle">Способ оплаты</h3>
+          <div className="payment-selector">
             <button
               type="button"
-              onClick={() => setFormData({ ...formData, payment_method: 'cash' })}
+              onClick={() => handleInputChange('payment_method', 'cash')}
               className={`payment-btn ${formData.payment_method === 'cash' ? 'active' : ''}`}
             >
-              💵 Наличные
+              <span className="btn-icon">💵</span>
+              <span className="btn-text">Наличные</span>
             </button>
             <button
               type="button"
-              onClick={() => setFormData({ ...formData, payment_method: 'usdt' })}
+              onClick={() => handleInputChange('payment_method', 'usdt')}
               className={`payment-btn ${formData.payment_method === 'usdt' ? 'active' : ''}`}
             >
-              💎 USDT
+              <span className="btn-icon">💎</span>
+              <span className="btn-text">USDT</span>
             </button>
           </div>
         </div>
 
         {/* Комментарий */}
-        <div style={{ marginBottom: '24px' }}>
-          <h3 style={{ marginBottom: '12px' }}>Комментарий</h3>
-          <textarea
-            placeholder="Комментарий к заказу (необязательно)"
-            value={formData.comment}
-            onChange={(e) => setFormData({ ...formData, comment: e.target.value })}
-            className="form-input"
-            style={{ minHeight: '80px', resize: 'vertical' }}
-          />
+        <div className="form-section">
+          <h3 className="section-subtitle">Комментарий</h3>
+          <div className="form-group">
+            <textarea
+              placeholder="Дополнительная информация к заказу (необязательно)"
+              value={formData.comment}
+              onChange={(e) => handleInputChange('comment', e.target.value)}
+              className="form-input form-textarea"
+              rows="3"
+            />
+          </div>
         </div>
 
         {/* Итого */}
-        <div style={{
-          position: 'fixed',
-          bottom: '70px',
-          left: 0,
-          right: 0,
-          padding: '16px',
-          background: 'var(--tg-theme-bg-color)',
-          borderTop: '1px solid var(--tg-theme-hint-color)'
-        }}>
-          <div style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            marginBottom: '12px',
-            fontSize: '18px',
-            fontWeight: '700'
-          }}>
-            <span>Итого:</span>
-            <span>{getTotalPrice()} BYN</span>
+        <div className="checkout-footer">
+          <div className="total-section">
+            <span className="total-label">Итого:</span>
+            <span className="total-amount">{getTotalPrice()} BYN</span>
           </div>
           
           <button
             type="submit"
             disabled={isOrdering}
-            className="btn btn-primary"
-            style={{ width: '100%' }}
+            className="btn btn-primary btn-submit"
           >
-            {isOrdering ? 'Оформление...' : 'Подтвердить заказ'}
+            {isOrdering ? '⏳ Оформление...' : '✅ Подтвердить заказ'}
           </button>
         </div>
       </form>

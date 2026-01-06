@@ -131,6 +131,22 @@ def create_order(
     db: Session = Depends(get_db)
 ):
     """Создание заказа"""
+    # Валидация данных доставки
+    if order_data.delivery_type not in ['minsk', 'europost']:
+        raise HTTPException(status_code=400, detail="Неверный тип доставки")
+    
+    if order_data.delivery_type == 'minsk' and not order_data.delivery_address:
+        raise HTTPException(status_code=400, detail="Укажите адрес доставки для Минска")
+    
+    if order_data.delivery_type == 'europost':
+        if not order_data.city:
+            raise HTTPException(status_code=400, detail="Укажите город для Евро почты")
+        if not order_data.europost_office:
+            raise HTTPException(status_code=400, detail="Укажите отделение Евро почты")
+    
+    if order_data.payment_method not in ['cash', 'usdt']:
+        raise HTTPException(status_code=400, detail="Неверный способ оплаты")
+    
     # Находим пользователя
     user = db.query(models.User).filter(
         models.User.telegram_id == current_user['telegram_id']
@@ -138,6 +154,10 @@ def create_order(
     
     if not user:
         raise HTTPException(status_code=404, detail="Пользователь не найден")
+    
+    # Проверка корзины
+    if not order_data.items or len(order_data.items) == 0:
+        raise HTTPException(status_code=400, detail="Корзина пуста")
     
     # Вычисляем общую сумму
     total_amount = 0
@@ -150,10 +170,10 @@ def create_order(
         ).first()
         
         if not product:
-            raise HTTPException(status_code=404, detail=f"Товар {item.product_id} не найден")
+            raise HTTPException(status_code=404, detail=f"Товар с ID {item.product_id} не найден")
         
         if product.stock < item.quantity:
-            raise HTTPException(status_code=400, detail=f"Недостаточно товара {product.name}")
+            raise HTTPException(status_code=400, detail=f"Недостаточно товара: {product.name}")
         
         item_total = product.price * item.quantity
         total_amount += item_total
@@ -164,36 +184,40 @@ def create_order(
             'price': product.price
         })
     
-    # Создаем заказ
-    db_order = models.Order(
-        user_id=user.id,
-        total_amount=total_amount,
-        delivery_type=order_data.delivery_type,
-        full_name=order_data.full_name,
-        phone=order_data.phone,
-        payment_method=order_data.payment_method,
-        delivery_address=order_data.delivery_address,
-        delivery_time=order_data.delivery_time,
-        delivery_date=order_data.delivery_date,
-        city=order_data.city,
-        europost_office=order_data.europost_office,
-        comment=order_data.comment
-    )
-    db.add(db_order)
-    db.flush()
-    
-    # Добавляем товары в заказ
-    for item_data in order_items:
-        order_item = models.OrderItem(
-            order_id=db_order.id,
-            **item_data
+    try:
+        # Создаем заказ
+        db_order = models.Order(
+            user_id=user.id,
+            total_amount=total_amount,
+            delivery_type=order_data.delivery_type,
+            full_name=order_data.full_name,
+            phone=order_data.phone,
+            payment_method=order_data.payment_method,
+            delivery_address=order_data.delivery_address,
+            delivery_time=order_data.delivery_time,
+            delivery_date=order_data.delivery_date,
+            city=order_data.city,
+            europost_office=order_data.europost_office,
+            comment=order_data.comment
         )
-        db.add(order_item)
-    
-    db.commit()
-    db.refresh(db_order)
-    
-    return db_order
+        db.add(db_order)
+        db.flush()
+        
+        # Добавляем товары в заказ
+        for item_data in order_items:
+            order_item = models.OrderItem(
+                order_id=db_order.id,
+                **item_data
+            )
+            db.add(order_item)
+        
+        db.commit()
+        db.refresh(db_order)
+        
+        return db_order
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"Ошибка создания заказа: {str(e)}")
 
 
 @app.get("/api/orders", response_model=List[schemas.Order])

@@ -223,14 +223,15 @@ body {
 /* Формы */
 .form-input {
   width: 100%;
-  padding: 12px;
+  padding: 12px 16px;
   margin-bottom: 12px;
   border: 1px solid var(--tg-theme-hint-color, #e5e5e5);
-  border-radius: 8px;
+  border-radius: 12px;
   font-size: 16px;
   background: var(--tg-theme-bg-color, #ffffff);
   color: var(--tg-theme-text-color, #000000);
   font-family: inherit;
+  transition: border-color 0.2s;
 }
 
 .form-input:focus {
@@ -238,10 +239,80 @@ body {
   border-color: var(--tg-theme-button-color, #3390ec);
 }
 
+.form-input.error {
+  border-color: #ff3b30;
+}
+
+.form-textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+/* Checkout Page */
+.checkout-page {
+  padding-bottom: 140px;
+}
+
+.form-section {
+  margin-bottom: 24px;
+}
+
+.section-subtitle {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 12px;
+  color: var(--tg-theme-text-color);
+}
+
+.form-group {
+  margin-bottom: 16px;
+}
+
+.form-label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--tg-theme-text-color);
+}
+
+.required {
+  color: #ff3b30;
+}
+
+.error-message {
+  color: #ff3b30;
+  font-size: 13px;
+  margin-top: -8px;
+  margin-bottom: 8px;
+  padding-left: 4px;
+}
+
+.info-message {
+  font-size: 12px;
+  color: var(--tg-theme-hint-color);
+  margin-top: 8px;
+  padding: 10px 12px;
+  background: var(--tg-theme-secondary-bg-color, #f4f4f5);
+  border-radius: 8px;
+  line-height: 1.4;
+}
+
+/* Селекторы */
+.delivery-type-selector,
+.payment-selector {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
 /* Кнопки выбора типа доставки */
 .delivery-type-btn {
-  flex: 1;
-  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 16px 12px;
   border: 2px solid var(--tg-theme-hint-color, #e5e5e5);
   border-radius: 12px;
   background: var(--tg-theme-bg-color, #ffffff);
@@ -250,6 +321,15 @@ body {
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s;
+}
+
+.delivery-type-btn .btn-icon {
+  font-size: 28px;
+}
+
+.delivery-type-btn .btn-text {
+  text-align: center;
+  line-height: 1.2;
 }
 
 .delivery-type-btn.active {
@@ -260,8 +340,11 @@ body {
 
 /* Кнопки способа оплаты */
 .payment-btn {
-  flex: 1;
-  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 16px 12px;
   border: 2px solid var(--tg-theme-hint-color, #e5e5e5);
   border-radius: 12px;
   background: var(--tg-theme-bg-color, #ffffff);
@@ -272,8 +355,55 @@ body {
   transition: all 0.2s;
 }
 
+.payment-btn .btn-icon {
+  font-size: 28px;
+}
+
+.payment-btn .btn-text {
+  text-align: center;
+}
+
 .payment-btn.active {
   border-color: var(--tg-theme-button-color, #3390ec);
   background: var(--tg-theme-button-color, #3390ec);
   color: var(--tg-theme-button-text-color, #ffffff);
+}
+
+/* Футер оформления */
+.checkout-footer {
+  position: fixed;
+  bottom: 70px;
+  left: 0;
+  right: 0;
+  padding: 16px;
+  background: var(--tg-theme-bg-color, #ffffff);
+  border-top: 1px solid var(--tg-theme-hint-color, #e5e5e5);
+  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
+}
+
+.total-section {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  padding: 12px 16px;
+  background: var(--tg-theme-secondary-bg-color, #f4f4f5);
+  border-radius: 12px;
+}
+
+.total-label {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--tg-theme-text-color);
+}
+
+.total-amount {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--tg-theme-button-color, #3390ec);
+}
+
+.btn-submit {
+  width: 100%;
+  font-size: 16px;
 }
