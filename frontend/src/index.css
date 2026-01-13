@@ -250,8 +250,7 @@ body {
 
 /* Checkout Page */
 .checkout-page {
-  padding-bottom: 160px;
-  min-height: 100vh;
+  padding-bottom: 140px;
 }
 
 .form-section {
@@ -380,7 +379,6 @@ body {
   background: var(--tg-theme-bg-color, #ffffff);
   border-top: 1px solid var(--tg-theme-hint-color, #e5e5e5);
   box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
-  z-index: 1000;
 }
 
 .total-section {
@@ -408,16 +406,4 @@ body {
 .btn-submit {
   width: 100%;
   font-size: 16px;
-}
-
-/* Предотвращаем скачки при фокусе на input */
-body {
-  position: fixed;
-  width: 100%;
-  overflow-y: scroll;
-}
-
-#root {
-  position: relative;
-  width: 100%;
 }

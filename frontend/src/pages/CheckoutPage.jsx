@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useCart } from '../context/CartContext'
 import { api } from '../api/client'
@@ -7,39 +7,20 @@ const CheckoutPage = ({ tg }) => {
   const navigate = useNavigate()
   const { cart, getTotalPrice, clearCart } = useCart()
   const [isOrdering, setIsOrdering] = useState(false)
+  const [deliveryType, setDeliveryType] = useState('minsk')
   const [errors, setErrors] = useState({})
   
-  // Загружаем сохраненные данные из localStorage
-  const savedData = JSON.parse(localStorage.getItem('checkoutData') || '{}')
-  const [deliveryType, setDeliveryType] = useState(savedData.delivery_type || 'minsk')
-  
   const [formData, setFormData] = useState({
-    full_name: savedData.full_name || '',
-    phone: savedData.phone || '',
-    payment_method: savedData.payment_method || 'cash',
-    delivery_address: savedData.delivery_address || '',
-    delivery_time: savedData.delivery_time || '13:00-17:00',
+    full_name: '',
+    phone: '',
+    payment_method: 'cash',
+    delivery_address: '',
+    delivery_time: '13:00-17:00',
     delivery_date: '',
-    city: savedData.city || '',
-    europost_office: savedData.europost_office || '',
+    city: '',
+    europost_office: '',
     comment: ''
   })
-
-  // Сохраняем данные при изменении
-  useEffect(() => {
-    const dataToSave = {
-      delivery_type: deliveryType,
-      full_name: formData.full_name,
-      phone: formData.phone,
-      payment_method: formData.payment_method,
-      delivery_address: formData.delivery_address,
-      delivery_time: formData.delivery_time,
-      city: formData.city,
-      europost_office: formData.europost_office
-    }
-    localStorage.setItem('checkoutData', JSON.stringify(dataToSave))
-  }, [deliveryType, formData.full_name, formData.phone, formData.payment_method, 
-      formData.delivery_address, formData.delivery_time, formData.city, formData.europost_office])
 
   const validateForm = () => {
     const newErrors = {}
@@ -63,21 +44,12 @@ const CheckoutPage = ({ tg }) => {
       if (!formData.delivery_address.trim()) {
         newErrors.delivery_address = 'Введите адрес доставки'
       }
-      if (!formData.delivery_time) {
-        newErrors.delivery_time = 'Выберите время доставки'
-      }
-      if (!formData.delivery_date) {
-        newErrors.delivery_date = 'Выберите дату доставки'
-      }
     } else if (deliveryType === 'europost') {
       if (!formData.city.trim()) {
         newErrors.city = 'Введите город'
       }
       if (!formData.europost_office.trim()) {
         newErrors.europost_office = 'Введите отделение'
-      }
-      if (!formData.delivery_date) {
-        newErrors.delivery_date = 'Выберите дату отправки'
       }
     }
     
@@ -120,7 +92,7 @@ const CheckoutPage = ({ tg }) => {
         payment_method: formData.payment_method,
         delivery_address: deliveryType === 'minsk' ? formData.delivery_address.trim() : null,
         delivery_time: deliveryType === 'minsk' ? formData.delivery_time : null,
-        delivery_date: formData.delivery_date || null,
+        delivery_date: deliveryType === 'minsk' && formData.delivery_date ? formData.delivery_date : null,
         city: deliveryType === 'europost' ? formData.city.trim() : null,
         europost_office: deliveryType === 'europost' ? formData.europost_office.trim() : null,
         comment: formData.comment.trim() || null
@@ -253,28 +225,22 @@ const CheckoutPage = ({ tg }) => {
               <select
                 value={formData.delivery_time}
                 onChange={(e) => handleInputChange('delivery_time', e.target.value)}
-                className={`form-input ${errors.delivery_time ? 'error' : ''}`}
-                required
+                className="form-input"
               >
                 <option value="13:00-17:00">13:00 - 17:00</option>
                 <option value="17:00-21:00">17:00 - 21:00</option>
               </select>
-              {errors.delivery_time && <div className="error-message">{errors.delivery_time}</div>}
             </div>
             
             <div className="form-group">
-              <label className="form-label">
-                Дата доставки <span className="required">*</span>
-              </label>
+              <label className="form-label">Дата доставки</label>
               <input
                 type="date"
                 value={formData.delivery_date}
                 onChange={(e) => handleInputChange('delivery_date', e.target.value)}
-                className={`form-input ${errors.delivery_date ? 'error' : ''}`}
+                className="form-input"
                 min={new Date().toISOString().split('T')[0]}
-                required
               />
-              {errors.delivery_date && <div className="error-message">{errors.delivery_date}</div>}
               <div className="info-message">
                 ℹ️ Заказы, оформленные до 12:45, будут доставлены сегодня в выбранный промежуток времени
               </div>
@@ -316,18 +282,14 @@ const CheckoutPage = ({ tg }) => {
             </div>
             
             <div className="form-group">
-              <label className="form-label">
-                Дата отправки <span className="required">*</span>
-              </label>
+              <label className="form-label">Дата отправки</label>
               <input
                 type="date"
                 value={formData.delivery_date}
                 onChange={(e) => handleInputChange('delivery_date', e.target.value)}
-                className={`form-input ${errors.delivery_date ? 'error' : ''}`}
+                className="form-input"
                 min={new Date().toISOString().split('T')[0]}
-                required
               />
-              {errors.delivery_date && <div className="error-message">{errors.delivery_date}</div>}
             </div>
           </div>
         )}
