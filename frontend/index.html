@@ -1,12 +1,19 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="ru" style="overflow-y: scroll; height: 100%;">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover" />
     <title>IQOS Shop</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+      html, body {
+        overflow-y: scroll !important;
+        -webkit-overflow-scrolling: touch !important;
+        overscroll-behavior: contain;
+      }
+    </style>
   </head>
-  <body>
+  <body style="overflow-y: scroll;">
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
   </body>

@@ -19,10 +19,26 @@ function App() {
       const webApp = window.Telegram.WebApp
       webApp.ready()
       webApp.expand()
+      
+      // КРИТИЧНО: Разрешаем вертикальный скролл
+      if (webApp.isVerticalSwipesEnabled !== undefined) {
+        webApp.isVerticalSwipesEnabled = true
+      }
+      
       setTg(webApp)
       
       // Применяем тему Telegram
       document.body.style.backgroundColor = webApp.backgroundColor
+      
+      // Принудительно включаем скролл
+      document.documentElement.style.overflow = 'scroll'
+      document.documentElement.style.overflowX = 'hidden'
+      document.body.style.overflow = 'scroll'
+      document.body.style.overflowX = 'hidden'
+    } else {
+      // Если не в Telegram, тоже включаем скролл
+      document.documentElement.style.overflow = 'scroll'
+      document.body.style.overflow = 'scroll'
     }
   }, [])
 
