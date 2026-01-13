@@ -19,19 +19,10 @@ function App() {
       const webApp = window.Telegram.WebApp
       webApp.ready()
       webApp.expand()
-      
-      // Включаем вертикальные свайпы (скролл)
-      webApp.enableClosingConfirmation()
-      webApp.disableVerticalSwipes = false
-      
       setTg(webApp)
       
       // Применяем тему Telegram
       document.body.style.backgroundColor = webApp.backgroundColor
-      
-      // Убеждаемся, что скролл работает
-      document.body.style.overflow = 'auto'
-      document.documentElement.style.overflow = 'auto'
     }
   }, [])
 
