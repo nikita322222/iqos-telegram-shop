@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="ru" style="overflow-y: scroll !important; height: 100%;">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Scroll Test</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        html, body {
+            overflow-y: scroll !important;
+            overflow-x: hidden;
+            -webkit-overflow-scrolling: touch !important;
+            height: 100%;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+            padding: 20px;
+            background: var(--tg-theme-bg-color, #ffffff);
+            color: var(--tg-theme-text-color, #000000);
+        }
+        
+        .content {
+            padding-bottom: 100px;
+        }
+        
+        .box {
+            background: #f0f0f0;
+            padding: 20px;
+            margin: 10px 0;
+            border-radius: 10px;
+        }
+        
+        .fixed-footer {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: #3390ec;
+            color: white;
+            padding: 20px;
+            text-align: center;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="content">
+        <h1>🧪 Тест скролла</h1>
+        <p>Если вы видите этот текст и можете листать вниз - скролл работает!</p>
+        
+        <div class="box">Блок 1</div>
+        <div class="box">Блок 2</div>
+        <div class="box">Блок 3</div>
+        <div class="box">Блок 4</div>
+        <div class="box">Блок 5</div>
+        <div class="box">Блок 6</div>
+        <div class="box">Блок 7</div>
+        <div class="box">Блок 8</div>
+        <div class="box">Блок 9</div>
+        <div class="box">Блок 10</div>
+        <div class="box">Блок 11</div>
+        <div class="box">Блок 12</div>
+        <div class="box">Блок 13</div>
+        <div class="box">Блок 14</div>
+        <div class="box">Блок 15</div>
+        <div class="box">Блок 16</div>
+        <div class="box">Блок 17</div>
+        <div class="box">Блок 18</div>
+        <div class="box">Блок 19</div>
+        <div class="box">Блок 20</div>
+        
+        <h2 style="color: green;">✅ Если вы видите это - скролл работает!</h2>
+    </div>
+    
+    <div class="fixed-footer">
+        Фиксированный футер
+    </div>
+    
+    <script>
+        // Инициализация Telegram Web App
+        if (window.Telegram?.WebApp) {
+            const tg = window.Telegram.WebApp;
+            tg.ready();
+            tg.expand();
+            
+            // Принудительно включаем скролл
+            document.documentElement.style.overflow = 'scroll';
+            document.body.style.overflow = 'scroll';
+            
+            console.log('Telegram Web App initialized');
+            console.log('Platform:', tg.platform);
+            console.log('Version:', tg.version);
+        }
+    </script>
+</body>
+</html>
