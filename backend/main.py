@@ -86,15 +86,31 @@ def get_current_user_info(
 
 # === PRODUCT ENDPOINTS ===
 
+@app.get("/api/products/debug", response_model=List[schemas.Product])
+def get_products_debug(
+    skip: int = 0,
+    limit: int = 100,
+    category: str = None,
+    db: Session = Depends(get_db)
+):
+    """Получение списка товаров БЕЗ авторизации (для отладки)"""
+    query = db.query(models.Product).filter(models.Product.is_active == True)
+    
+    if category:
+        query = query.filter(models.Product.category == category)
+    
+    products = query.offset(skip).limit(limit).all()
+    return products
+
+
 @app.get("/api/products", response_model=List[schemas.Product])
 def get_products(
     skip: int = 0,
     limit: int = 100,
     category: str = None,
-    db: Session = Depends(get_db),
-    current_user: dict = Depends(get_current_user)
+    db: Session = Depends(get_db)
 ):
-    """Получение списка товаров"""
+    """Получение списка товаров (авторизация опциональна)"""
     query = db.query(models.Product).filter(models.Product.is_active == True)
     
     if category:
@@ -107,10 +123,9 @@ def get_products(
 @app.get("/api/products/{product_id}", response_model=schemas.Product)
 def get_product(
     product_id: int,
-    db: Session = Depends(get_db),
-    current_user: dict = Depends(get_current_user)
+    db: Session = Depends(get_db)
 ):
-    """Получение товара по ID"""
+    """Получение товара по ID (авторизация опциональна)"""
     product = db.query(models.Product).filter(
         models.Product.id == product_id,
         models.Product.is_active == True
