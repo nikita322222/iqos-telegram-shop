@@ -25,14 +25,39 @@ app.add_middleware(
 @app.on_event("startup")
 def startup_event():
     """Инициализация БД при старте"""
+    from sqlalchemy import text, inspect
+    
     init_db()
     
-    # Автоматически создаем тестовые данные если БД пустая
+    # Миграция: добавляем новые поля если их нет
     from database import SessionLocal
     import models
     
     db = SessionLocal()
     try:
+        # Проверяем и добавляем новые поля в users
+        inspector = inspect(db.bind)
+        existing_columns = [col['name'] for col in inspector.get_columns('users')]
+        
+        fields_to_add = {
+            "saved_full_name": "VARCHAR",
+            "saved_phone": "VARCHAR",
+            "saved_delivery_address": "TEXT",
+            "saved_city": "VARCHAR",
+            "saved_europost_office": "VARCHAR",
+            "saved_delivery_type": "VARCHAR"
+        }
+        
+        for field_name, field_type in fields_to_add.items():
+            if field_name not in existing_columns:
+                try:
+                    db.execute(text(f"ALTER TABLE users ADD COLUMN {field_name} {field_type}"))
+                    db.commit()
+                    print(f"✅ Добавлено поле: {field_name}")
+                except Exception as e:
+                    print(f"⚠️  Ошибка добавления {field_name}: {e}")
+                    db.rollback()
+        
         # Проверяем есть ли пользователи
         user_count = db.query(models.User).count()
         if user_count == 0:
@@ -347,49 +372,6 @@ def remove_from_favorites(
     db.commit()
     
     return {"message": "Товар удален из избранного"}
-
-
-@app.post("/api/admin/migrate")
-def run_migration(db: Session = Depends(get_db)):
-    """Запуск миграции базы данных (добавление новых полей)"""
-    from sqlalchemy import text, inspect
-    
-    fields_to_add = {
-        "saved_full_name": "VARCHAR",
-        "saved_phone": "VARCHAR",
-        "saved_delivery_address": "TEXT",
-        "saved_city": "VARCHAR",
-        "saved_europost_office": "VARCHAR",
-        "saved_delivery_type": "VARCHAR"
-    }
-    
-    try:
-        # Получаем существующие колонки
-        inspector = inspect(db.bind)
-        existing_columns = [col['name'] for col in inspector.get_columns('users')]
-        
-        added = []
-        skipped = []
-        
-        for field_name, field_type in fields_to_add.items():
-            if field_name in existing_columns:
-                skipped.append(field_name)
-                continue
-            
-            # Добавляем поле
-            db.execute(text(f"ALTER TABLE users ADD COLUMN {field_name} {field_type}"))
-            added.append(field_name)
-        
-        db.commit()
-        
-        return {
-            "message": "Миграция завершена",
-            "added": added,
-            "skipped": skipped
-        }
-    except Exception as e:
-        db.rollback()
-        raise HTTPException(status_code=500, detail=f"Ошибка миграции: {str(e)}")
 
 
 @app.post("/api/admin/import-products")
