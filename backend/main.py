@@ -317,6 +317,16 @@ def get_user_orders(
     return orders
 
 
+@app.get("/api/admin/orders/pending", response_model=List[schemas.Order])
+def get_pending_orders(db: Session = Depends(get_db)):
+    """Получение заказов со статусом pending для админа"""
+    orders = db.query(models.Order).filter(
+        models.Order.status == 'pending'
+    ).order_by(models.Order.created_at.desc()).all()
+    
+    return orders
+
+
 @app.patch("/api/orders/{order_id}/status")
 def update_order_status(
     order_id: int,

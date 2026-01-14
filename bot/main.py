@@ -14,6 +14,9 @@ logger = logging.getLogger(__name__)
 bot = Bot(token=config.BOT_TOKEN)
 dp = Dispatcher()
 
+# Хранилище обработанных заказов
+processed_orders = set()
+
 
 async def check_user_access(telegram_id: int) -> bool:
     """Проверка доступа пользователя через Backend API"""
@@ -71,6 +74,44 @@ async def cmd_start(message: Message):
     )
 
 
+async def check_new_orders():
+    """Периодическая проверка новых заказов"""
+    while True:
+        try:
+            import ssl
+            ssl_context = ssl.create_default_context()
+            ssl_context.check_hostname = False
+            ssl_context.verify_mode = ssl.CERT_NONE
+            
+            connector = aiohttp.TCPConnector(ssl=ssl_context)
+            async with aiohttp.ClientSession(connector=connector) as session:
+                # Получаем все заказы со статусом pending
+                async with session.get(
+                    f"{config.BACKEND_URL}/api/admin/orders/pending"
+                ) as response:
+                    if response.status == 200:
+                        orders = await response.json()
+                        
+                        for order in orders:
+                            order_id = order.get('id')
+                            
+                            # Пропускаем уже обработанные заказы
+                            if order_id in processed_orders:
+                                continue
+                            
+                            # Отправляем уведомление
+                            await send_order_notification(order)
+                            
+                            # Добавляем в обработанные
+                            processed_orders.add(order_id)
+                            
+        except Exception as e:
+            logger.error(f"Ошибка проверки заказов: {e}")
+        
+        # Проверяем каждые 10 секунд
+        await asyncio.sleep(10)
+
+
 async def send_order_notification(order_data: dict):
     """Отправка уведомления о новом заказе в группу администраторов"""
     if not config.ADMIN_GROUP_ID:
@@ -79,8 +120,7 @@ async def send_order_notification(order_data: dict):
     
     try:
         # Формируем текст уведомления
-        order_id = order_data.get('order_id')
-        user_info = order_data.get('user', {})
+        order_id = order_data.get('id')
         delivery_type = order_data.get('delivery_type')
         
         message_text = (
@@ -119,7 +159,8 @@ async def send_order_notification(order_data: dict):
         if items:
             message_text += "\n📦 <b>Товары:</b>\n"
             for item in items:
-                message_text += f"  • {item.get('name')} x{item.get('quantity')} = {item.get('price') * item.get('quantity')} BYN\n"
+                product = item.get('product', {})
+                message_text += f"  • {product.get('name')} x{item.get('quantity')} = {item.get('price') * item.get('quantity')} BYN\n"
         
         # Создаем кнопки для принятия/отклонения заказа
         builder = InlineKeyboardBuilder()
@@ -217,33 +258,9 @@ async def main():
     """Запуск бота"""
     logger.info("Бот запущен")
     
-    # Запускаем webhook сервер в фоне
-    from aiohttp import web
-    
-    async def handle_order_webhook(request):
-        """Обработчик webhook для новых заказов"""
-        try:
-            order_data = await request.json()
-            logger.info(f"Получен заказ #{order_data.get('order_id')}")
-            
-            # Отправляем уведомление в группу
-            await send_order_notification(order_data)
-            
-            return web.json_response({"status": "ok"})
-        except Exception as e:
-            logger.error(f"Ошибка обработки webhook: {e}")
-            return web.json_response({"status": "error", "message": str(e)}, status=500)
-    
-    # Создаем webhook сервер
-    app = web.Application()
-    app.router.add_post('/webhook/order', handle_order_webhook)
-    
-    runner = web.AppRunner(app)
-    await runner.setup()
-    site = web.TCPSite(runner, '0.0.0.0', 8001)
-    await site.start()
-    
-    logger.info("Webhook сервер запущен на порту 8001")
+    # Запускаем проверку заказов в фоне
+    asyncio.create_task(check_new_orders())
+    logger.info("Запущена проверка новых заказов")
     
     # Запускаем polling
     await dp.start_polling(bot)
