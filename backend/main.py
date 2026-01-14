@@ -247,7 +247,7 @@ def create_order(
         
         # Отправляем уведомление в Telegram группу
         try:
-            import httpx
+            import requests
             import os
             
             # Получаем товары заказа
@@ -264,7 +264,7 @@ def create_order(
                 'order_id': db_order.id,
                 'full_name': db_order.full_name,
                 'phone': db_order.phone,
-                'total_amount': db_order.total_amount,
+                'total_amount': float(db_order.total_amount),
                 'payment_method': db_order.payment_method,
                 'delivery_type': db_order.delivery_type,
                 'delivery_address': db_order.delivery_address,
@@ -279,17 +279,14 @@ def create_order(
             # Отправляем webhook на бота (локально или на сервере)
             bot_webhook_url = os.getenv('BOT_WEBHOOK_URL', 'http://localhost:8001/webhook/order')
             
-            async def send_notification():
-                async with httpx.AsyncClient() as client:
-                    await client.post(bot_webhook_url, json=notification_data, timeout=5.0)
+            print(f"📤 Отправка уведомления о заказе #{db_order.id} на {bot_webhook_url}")
+            response = requests.post(bot_webhook_url, json=notification_data, timeout=5.0)
             
-            # Запускаем отправку в фоне
-            import asyncio
-            try:
-                asyncio.create_task(send_notification())
-            except:
-                # Если event loop не запущен, пропускаем
-                pass
+            if response.status_code == 200:
+                print(f"✅ Уведомление о заказе #{db_order.id} отправлено")
+            else:
+                print(f"⚠️ Ошибка отправки уведомления: {response.status_code}")
+                
         except Exception as e:
             print(f"⚠️ Ошибка отправки уведомления: {e}")
             # Не падаем, заказ уже создан

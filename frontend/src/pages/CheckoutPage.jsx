@@ -78,12 +78,21 @@ const CheckoutPage = ({ tg }) => {
       if (!formData.delivery_address.trim()) {
         newErrors.delivery_address = 'Введите адрес доставки'
       }
+      if (!formData.delivery_time) {
+        newErrors.delivery_time = 'Выберите время доставки'
+      }
+      if (!formData.delivery_date) {
+        newErrors.delivery_date = 'Выберите дату доставки'
+      }
     } else if (deliveryType === 'europost') {
       if (!formData.city.trim()) {
         newErrors.city = 'Введите город'
       }
       if (!formData.europost_office.trim()) {
         newErrors.europost_office = 'Введите отделение'
+      }
+      if (!formData.delivery_date) {
+        newErrors.delivery_date = 'Выберите дату отправки'
       }
     }
     
@@ -271,14 +280,17 @@ const CheckoutPage = ({ tg }) => {
             </div>
             
             <div className="form-group">
-              <label className="form-label">Дата доставки</label>
+              <label className="form-label">
+                Дата доставки <span className="required">*</span>
+              </label>
               <input
                 type="date"
                 value={formData.delivery_date}
                 onChange={(e) => handleInputChange('delivery_date', e.target.value)}
-                className="form-input"
+                className={`form-input ${errors.delivery_date ? 'error' : ''}`}
                 min={new Date().toISOString().split('T')[0]}
               />
+              {errors.delivery_date && <div className="error-message">{errors.delivery_date}</div>}
               <div className="info-message">
                 ℹ️ Заказы, оформленные до 12:45, будут доставлены сегодня в выбранный промежуток времени
               </div>
@@ -320,14 +332,17 @@ const CheckoutPage = ({ tg }) => {
             </div>
             
             <div className="form-group">
-              <label className="form-label">Дата отправки</label>
+              <label className="form-label">
+                Дата отправки <span className="required">*</span>
+              </label>
               <input
                 type="date"
                 value={formData.delivery_date}
                 onChange={(e) => handleInputChange('delivery_date', e.target.value)}
-                className="form-input"
+                className={`form-input ${errors.delivery_date ? 'error' : ''}`}
                 min={new Date().toISOString().split('T')[0]}
               />
+              {errors.delivery_date && <div className="error-message">{errors.delivery_date}</div>}
             </div>
           </div>
         )}
