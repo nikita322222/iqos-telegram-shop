@@ -18,6 +18,12 @@ class User(UserBase):
     id: int
     is_active: bool
     created_at: datetime
+    saved_full_name: Optional[str] = None
+    saved_phone: Optional[str] = None
+    saved_delivery_address: Optional[str] = None
+    saved_city: Optional[str] = None
+    saved_europost_office: Optional[str] = None
+    saved_delivery_type: Optional[str] = None
     
     class Config:
         from_attributes = True

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useCart } from '../context/CartContext'
 import { api } from '../api/client'
@@ -7,6 +7,7 @@ const CheckoutPage = ({ tg }) => {
   const navigate = useNavigate()
   const { cart, getTotalPrice, clearCart } = useCart()
   const [isOrdering, setIsOrdering] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
   const [deliveryType, setDeliveryType] = useState('minsk')
   const [errors, setErrors] = useState({})
   
@@ -21,6 +22,39 @@ const CheckoutPage = ({ tg }) => {
     europost_office: '',
     comment: ''
   })
+
+  // Загрузка сохраненных данных пользователя
+  useEffect(() => {
+    const loadUserData = async () => {
+      try {
+        const response = await api.getCurrentUser()
+        const userData = response.data
+        
+        // Автозаполнение сохраненных данных
+        if (userData.saved_full_name || userData.saved_phone) {
+          setFormData(prev => ({
+            ...prev,
+            full_name: userData.saved_full_name || '',
+            phone: userData.saved_phone || '',
+            delivery_address: userData.saved_delivery_address || '',
+            city: userData.saved_city || '',
+            europost_office: userData.saved_europost_office || ''
+          }))
+          
+          // Устанавливаем тип доставки из последнего заказа
+          if (userData.saved_delivery_type) {
+            setDeliveryType(userData.saved_delivery_type)
+          }
+        }
+      } catch (error) {
+        console.error('Ошибка загрузки данных пользователя:', error)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+    
+    loadUserData()
+  }, [])
 
   const validateForm = () => {
     const newErrors = {}
@@ -136,6 +170,10 @@ const CheckoutPage = ({ tg }) => {
   if (cart.length === 0) {
     navigate('/cart')
     return null
+  }
+
+  if (isLoading) {
+    return <div className="loading">Загрузка...</div>
   }
 
   return (

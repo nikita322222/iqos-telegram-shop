@@ -15,6 +15,14 @@ class User(Base):
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     
+    # Сохраненные данные для автозаполнения
+    saved_full_name = Column(String, nullable=True)
+    saved_phone = Column(String, nullable=True)
+    saved_delivery_address = Column(Text, nullable=True)
+    saved_city = Column(String, nullable=True)
+    saved_europost_office = Column(String, nullable=True)
+    saved_delivery_type = Column(String, nullable=True)  # minsk или europost
+    
     orders = relationship("Order", back_populates="user")
     favorites = relationship("Favorite", back_populates="user")
 

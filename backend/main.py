@@ -226,6 +226,17 @@ def create_order(
             )
             db.add(order_item)
         
+        # Сохраняем данные пользователя для автозаполнения
+        user.saved_full_name = order_data.full_name
+        user.saved_phone = order_data.phone
+        user.saved_delivery_type = order_data.delivery_type
+        
+        if order_data.delivery_type == 'minsk':
+            user.saved_delivery_address = order_data.delivery_address
+        elif order_data.delivery_type == 'europost':
+            user.saved_city = order_data.city
+            user.saved_europost_office = order_data.europost_office
+        
         db.commit()
         db.refresh(db_order)
         
