@@ -349,6 +349,49 @@ def remove_from_favorites(
     return {"message": "Товар удален из избранного"}
 
 
+@app.post("/api/admin/migrate")
+def run_migration(db: Session = Depends(get_db)):
+    """Запуск миграции базы данных (добавление новых полей)"""
+    from sqlalchemy import text, inspect
+    
+    fields_to_add = {
+        "saved_full_name": "VARCHAR",
+        "saved_phone": "VARCHAR",
+        "saved_delivery_address": "TEXT",
+        "saved_city": "VARCHAR",
+        "saved_europost_office": "VARCHAR",
+        "saved_delivery_type": "VARCHAR"
+    }
+    
+    try:
+        # Получаем существующие колонки
+        inspector = inspect(db.bind)
+        existing_columns = [col['name'] for col in inspector.get_columns('users')]
+        
+        added = []
+        skipped = []
+        
+        for field_name, field_type in fields_to_add.items():
+            if field_name in existing_columns:
+                skipped.append(field_name)
+                continue
+            
+            # Добавляем поле
+            db.execute(text(f"ALTER TABLE users ADD COLUMN {field_name} {field_type}"))
+            added.append(field_name)
+        
+        db.commit()
+        
+        return {
+            "message": "Миграция завершена",
+            "added": added,
+            "skipped": skipped
+        }
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"Ошибка миграции: {str(e)}")
+
+
 @app.post("/api/admin/import-products")
 def import_products_bulk(products: List[schemas.ProductCreate], db: Session = Depends(get_db)):
     """Массовый импорт товаров"""
