@@ -245,6 +245,55 @@ def create_order(
         db.commit()
         db.refresh(db_order)
         
+        # Отправляем уведомление в Telegram группу
+        try:
+            import httpx
+            import os
+            
+            # Получаем товары заказа
+            items = []
+            for order_item in db_order.items:
+                items.append({
+                    'name': order_item.product.name,
+                    'quantity': order_item.quantity,
+                    'price': order_item.price
+                })
+            
+            # Формируем данные для отправки
+            notification_data = {
+                'order_id': db_order.id,
+                'full_name': db_order.full_name,
+                'phone': db_order.phone,
+                'total_amount': db_order.total_amount,
+                'payment_method': db_order.payment_method,
+                'delivery_type': db_order.delivery_type,
+                'delivery_address': db_order.delivery_address,
+                'delivery_time': db_order.delivery_time,
+                'delivery_date': db_order.delivery_date,
+                'city': db_order.city,
+                'europost_office': db_order.europost_office,
+                'comment': db_order.comment,
+                'items': items
+            }
+            
+            # Отправляем webhook на бота (локально или на сервере)
+            bot_webhook_url = os.getenv('BOT_WEBHOOK_URL', 'http://localhost:8001/webhook/order')
+            
+            async def send_notification():
+                async with httpx.AsyncClient() as client:
+                    await client.post(bot_webhook_url, json=notification_data, timeout=5.0)
+            
+            # Запускаем отправку в фоне
+            import asyncio
+            try:
+                asyncio.create_task(send_notification())
+            except:
+                # Если event loop не запущен, пропускаем
+                pass
+        except Exception as e:
+            print(f"⚠️ Ошибка отправки уведомления: {e}")
+            # Не падаем, заказ уже создан
+        
         return db_order
     except Exception as e:
         db.rollback()
@@ -269,6 +318,79 @@ def get_user_orders(
     ).order_by(models.Order.created_at.desc()).all()
     
     return orders
+
+
+@app.patch("/api/orders/{order_id}/status")
+def update_order_status(
+    order_id: int,
+    status_data: dict,
+    db: Session = Depends(get_db)
+):
+    """Обновление статуса заказа"""
+    order = db.query(models.Order).filter(models.Order.id == order_id).first()
+    
+    if not order:
+        raise HTTPException(status_code=404, detail="Заказ не найден")
+    
+    new_status = status_data.get('status')
+    if new_status not in ['pending', 'confirmed', 'completed', 'cancelled']:
+        raise HTTPException(status_code=400, detail="Неверный статус")
+    
+    order.status = new_status
+    db.commit()
+    
+    return {"message": "Статус обновлен", "order_id": order_id, "status": new_status}
+
+
+@app.post("/api/orders/{order_id}/notify")
+async def send_order_notification(order_id: int, db: Session = Depends(get_db)):
+    """Отправка уведомления о заказе в Telegram группу"""
+    import httpx
+    import os
+    
+    order = db.query(models.Order).filter(models.Order.id == order_id).first()
+    if not order:
+        raise HTTPException(status_code=404, detail="Заказ не найден")
+    
+    # Получаем товары заказа
+    items = []
+    for order_item in order.items:
+        items.append({
+            'name': order_item.product.name,
+            'quantity': order_item.quantity,
+            'price': order_item.price
+        })
+    
+    # Формируем данные для отправки
+    notification_data = {
+        'order_id': order.id,
+        'full_name': order.full_name,
+        'phone': order.phone,
+        'total_amount': order.total_amount,
+        'payment_method': order.payment_method,
+        'delivery_type': order.delivery_type,
+        'delivery_address': order.delivery_address,
+        'delivery_time': order.delivery_time,
+        'delivery_date': order.delivery_date,
+        'city': order.city,
+        'europost_office': order.europost_office,
+        'comment': order.comment,
+        'items': items
+    }
+    
+    # Отправляем webhook на бота
+    bot_webhook_url = os.getenv('BOT_WEBHOOK_URL', 'http://localhost:8001/webhook/order')
+    
+    try:
+        async with httpx.AsyncClient() as client:
+            response = await client.post(bot_webhook_url, json=notification_data, timeout=10.0)
+            if response.status_code == 200:
+                return {"message": "Уведомление отправлено"}
+            else:
+                raise HTTPException(status_code=500, detail="Ошибка отправки уведомления")
+    except Exception as e:
+        print(f"Ошибка отправки уведомления: {e}")
+        raise HTTPException(status_code=500, detail=f"Ошибка: {str(e)}")
 
 
 # === FAVORITE ENDPOINTS ===
