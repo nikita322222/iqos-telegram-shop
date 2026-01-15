@@ -9,6 +9,7 @@ const Layout = ({ children, tg }) => {
   const navItems = [
     { path: '/catalog', label: 'Каталог', icon: '📦' },
     { path: '/favorites', label: 'Избранное', icon: '❤️' },
+    { path: '/bonus', label: 'Бонусы', icon: '⭐' },
     { path: '/cart', label: 'Корзина', icon: '🛒', badge: cartCount },
     { path: '/profile', label: 'Профиль', icon: '👤' },
   ]

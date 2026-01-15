@@ -11,6 +11,11 @@ const CheckoutPage = ({ tg }) => {
   const [deliveryType, setDeliveryType] = useState('minsk')
   const [errors, setErrors] = useState({})
   
+  // Бонусы
+  const [bonusBalance, setBonusBalance] = useState(0)
+  const [bonusToUse, setBonusToUse] = useState(0)
+  const [useBonuses, setUseBonuses] = useState(false)
+  
   const [formData, setFormData] = useState({
     full_name: '',
     phone: '',
@@ -23,12 +28,15 @@ const CheckoutPage = ({ tg }) => {
     comment: ''
   })
 
-  // Загрузка сохраненных данных пользователя
+  // Загрузка сохраненных данных пользователя и бонусов
   useEffect(() => {
     const loadUserData = async () => {
       try {
         const response = await api.getCurrentUser()
         const userData = response.data
+        
+        // Загружаем баланс бонусов
+        setBonusBalance(userData.bonus_balance || 0)
         
         // Автозаполнение сохраненных данных
         if (userData.saved_full_name || userData.saved_phone) {
@@ -138,7 +146,8 @@ const CheckoutPage = ({ tg }) => {
         delivery_date: deliveryType === 'minsk' && formData.delivery_date ? formData.delivery_date : null,
         city: deliveryType === 'europost' ? formData.city.trim() : null,
         europost_office: deliveryType === 'europost' ? formData.europost_office.trim() : null,
-        comment: formData.comment.trim() || null
+        comment: formData.comment.trim() || null,
+        bonus_to_use: useBonuses ? bonusToUse : 0
       }
 
       await api.createOrder(orderPayload)
@@ -384,11 +393,83 @@ const CheckoutPage = ({ tg }) => {
           </div>
         </div>
 
+        {/* Бонусы */}
+        {bonusBalance > 0 && (
+          <div className="form-section">
+            <h3>💰 Использовать бонусы</h3>
+            <div className="bonus-section">
+              <div className="bonus-info">
+                <span>Доступно бонусов:</span>
+                <span className="bonus-balance">{bonusBalance.toFixed(2)} ₽</span>
+              </div>
+              
+              <label className="checkbox-label">
+                <input
+                  type="checkbox"
+                  checked={useBonuses}
+                  onChange={(e) => {
+                    setUseBonuses(e.target.checked)
+                    if (e.target.checked) {
+                      const maxBonus = Math.min(bonusBalance, getTotalPrice())
+                      setBonusToUse(maxBonus)
+                    } else {
+                      setBonusToUse(0)
+                    }
+                  }}
+                />
+                <span>Использовать бонусы для оплаты</span>
+              </label>
+
+              {useBonuses && (
+                <div className="bonus-input-group">
+                  <label>Сумма бонусов:</label>
+                  <input
+                    type="number"
+                    min="0"
+                    max={Math.min(bonusBalance, getTotalPrice())}
+                    step="0.01"
+                    value={bonusToUse}
+                    onChange={(e) => {
+                      const value = parseFloat(e.target.value) || 0
+                      const maxBonus = Math.min(bonusBalance, getTotalPrice())
+                      setBonusToUse(Math.min(value, maxBonus))
+                    }}
+                    className="form-input"
+                  />
+                  <div className="bonus-hint">
+                    Максимум: {Math.min(bonusBalance, getTotalPrice()).toFixed(2)} ₽
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
         {/* Итого */}
         <div className="checkout-footer">
           <div className="total-section">
-            <span className="total-label">Итого:</span>
-            <span className="total-amount">{getTotalPrice()} BYN</span>
+            {useBonuses && bonusToUse > 0 && (
+              <>
+                <div className="total-row">
+                  <span className="total-label">Сумма заказа:</span>
+                  <span className="total-amount">{getTotalPrice()} BYN</span>
+                </div>
+                <div className="total-row bonus-discount">
+                  <span className="total-label">Списано бонусов:</span>
+                  <span className="total-amount">-{bonusToUse.toFixed(2)} BYN</span>
+                </div>
+                <div className="total-row final-total">
+                  <span className="total-label">К оплате:</span>
+                  <span className="total-amount">{(getTotalPrice() - bonusToUse).toFixed(2)} BYN</span>
+                </div>
+              </>
+            )}
+            {(!useBonuses || bonusToUse === 0) && (
+              <div className="total-row">
+                <span className="total-label">Итого:</span>
+                <span className="total-amount">{getTotalPrice()} BYN</span>
+              </div>
+            )}
           </div>
           
           <button

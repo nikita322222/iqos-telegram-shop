@@ -24,6 +24,9 @@ class User(UserBase):
     saved_city: Optional[str] = None
     saved_europost_office: Optional[str] = None
     saved_delivery_type: Optional[str] = None
+    bonus_balance: float = 0.0
+    total_orders_count: int = 0
+    loyalty_level: str = "bronze"
     
     class Config:
         from_attributes = True
@@ -90,16 +93,35 @@ class OrderBase(BaseModel):
 
 class OrderCreate(OrderBase):
     items: List[OrderItemCreate]
+    bonus_to_use: Optional[float] = 0.0  # Сколько бонусов хочет использовать
 
 
 class Order(OrderBase):
     id: int
     user_id: int
     total_amount: float
+    bonus_used: float = 0.0
+    bonus_earned: float = 0.0
     status: str
     created_at: datetime
     items: List[OrderItem]
     user: User
+    
+    class Config:
+        from_attributes = True
+
+
+class BonusTransactionBase(BaseModel):
+    amount: float
+    transaction_type: str
+    description: Optional[str] = None
+
+
+class BonusTransaction(BonusTransactionBase):
+    id: int
+    user_id: int
+    order_id: Optional[int] = None
+    created_at: datetime
     
     class Config:
         from_attributes = True

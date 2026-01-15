@@ -23,8 +23,14 @@ class User(Base):
     saved_europost_office = Column(String, nullable=True)
     saved_delivery_type = Column(String, nullable=True)  # minsk или europost
     
+    # Бонусная система
+    bonus_balance = Column(Float, default=0.0)  # Текущий баланс бонусов
+    total_orders_count = Column(Integer, default=0)  # Количество завершенных заказов
+    loyalty_level = Column(String, default="bronze")  # bronze, silver, gold
+    
     orders = relationship("Order", back_populates="user")
     favorites = relationship("Favorite", back_populates="user")
+    bonus_transactions = relationship("BonusTransaction", back_populates="user")
 
 
 class Product(Base):
@@ -51,6 +57,8 @@ class Order(Base):
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     total_amount = Column(Float, nullable=False)
+    bonus_used = Column(Float, default=0.0)  # Сколько бонусов использовано
+    bonus_earned = Column(Float, default=0.0)  # Сколько бонусов начислено
     status = Column(String, default="pending")  # pending, confirmed, completed, cancelled
     
     # Тип доставки
@@ -101,3 +109,17 @@ class Favorite(Base):
     
     user = relationship("User", back_populates="favorites")
     product = relationship("Product", back_populates="favorites")
+
+
+class BonusTransaction(Base):
+    __tablename__ = "bonus_transactions"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    amount = Column(Float, nullable=False)  # Положительное = начисление, отрицательное = списание
+    transaction_type = Column(String, nullable=False)  # earned, spent, expired
+    description = Column(String, nullable=True)  # "Начислено за заказ #123"
+    order_id = Column(Integer, ForeignKey("orders.id"), nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    
+    user = relationship("User", back_populates="bonus_transactions")

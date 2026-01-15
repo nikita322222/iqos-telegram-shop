@@ -106,6 +106,87 @@ def update_user_info(
     return {"message": "Данные пользователя обновлены", "user_id": user.id}
 
 
+# === BONUS ENDPOINTS ===
+
+def calculate_loyalty_level(orders_count: int) -> str:
+    """Вычисление уровня лояльности"""
+    if orders_count >= 16:
+        return "gold"
+    elif orders_count >= 6:
+        return "silver"
+    else:
+        return "bronze"
+
+
+def get_cashback_percent(loyalty_level: str) -> float:
+    """Получение процента кэшбэка по уровню"""
+    cashback_rates = {
+        "bronze": 1.5,
+        "silver": 3.0,
+        "gold": 5.0
+    }
+    return cashback_rates.get(loyalty_level, 1.5)
+
+
+@app.get("/api/bonus/info")
+def get_bonus_info(
+    current_user: dict = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Получение информации о бонусах пользователя"""
+    user = db.query(models.User).filter(
+        models.User.telegram_id == current_user['telegram_id']
+    ).first()
+    
+    if not user:
+        raise HTTPException(status_code=404, detail="Пользователь не найден")
+    
+    # Вычисляем прогресс до следующего уровня
+    current_orders = user.total_orders_count
+    next_level_orders = 0
+    progress_percent = 0
+    
+    if user.loyalty_level == "bronze":
+        next_level_orders = 6
+        progress_percent = min(100, (current_orders / 6) * 100)
+    elif user.loyalty_level == "silver":
+        next_level_orders = 16
+        progress_percent = min(100, ((current_orders - 6) / 10) * 100)
+    else:  # gold
+        next_level_orders = current_orders
+        progress_percent = 100
+    
+    return {
+        "bonus_balance": user.bonus_balance,
+        "loyalty_level": user.loyalty_level,
+        "total_orders_count": user.total_orders_count,
+        "cashback_percent": get_cashback_percent(user.loyalty_level),
+        "next_level_orders": next_level_orders,
+        "progress_percent": progress_percent
+    }
+
+
+@app.get("/api/bonus/transactions")
+def get_bonus_transactions(
+    current_user: dict = Depends(get_current_user),
+    db: Session = Depends(get_db),
+    limit: int = 20
+):
+    """Получение истории бонусных транзакций"""
+    user = db.query(models.User).filter(
+        models.User.telegram_id == current_user['telegram_id']
+    ).first()
+    
+    if not user:
+        raise HTTPException(status_code=404, detail="Пользователь не найден")
+    
+    transactions = db.query(models.BonusTransaction).filter(
+        models.BonusTransaction.user_id == user.id
+    ).order_by(models.BonusTransaction.created_at.desc()).limit(limit).all()
+    
+    return transactions
+
+
 # === PRODUCT ENDPOINTS ===
 
 @app.get("/api/products/debug", response_model=List[schemas.Product])
@@ -221,11 +302,23 @@ def create_order(
             'price': product.price
         })
     
+    # Обработка бонусов
+    bonus_to_use = order_data.bonus_to_use or 0.0
+    if bonus_to_use > 0:
+        if bonus_to_use > user.bonus_balance:
+            raise HTTPException(status_code=400, detail="Недостаточно бонусов")
+        if bonus_to_use > total_amount:
+            raise HTTPException(status_code=400, detail="Бонусов больше чем сумма заказа")
+    
+    # Применяем бонусы к сумме заказа
+    final_amount = total_amount - bonus_to_use
+    
     try:
         # Создаем заказ
         db_order = models.Order(
             user_id=user.id,
-            total_amount=total_amount,
+            total_amount=final_amount,
+            bonus_used=bonus_to_use,
             delivery_type=order_data.delivery_type,
             full_name=order_data.full_name,
             phone=order_data.phone,
@@ -247,6 +340,20 @@ def create_order(
                 **item_data
             )
             db.add(order_item)
+        
+        # Списываем бонусы если использованы
+        if bonus_to_use > 0:
+            user.bonus_balance -= bonus_to_use
+            
+            # Создаем транзакцию списания
+            bonus_transaction = models.BonusTransaction(
+                user_id=user.id,
+                amount=-bonus_to_use,
+                transaction_type="spent",
+                description=f"Оплата заказа #{db_order.id}",
+                order_id=db_order.id
+            )
+            db.add(bonus_transaction)
         
         # Сохраняем данные пользователя для автозаполнения
         user.saved_full_name = order_data.full_name
@@ -356,11 +463,43 @@ def update_order_status(
     if not order:
         raise HTTPException(status_code=404, detail="Заказ не найден")
     
+    old_status = order.status
     new_status = status_data.get('status')
     if new_status not in ['pending', 'confirmed', 'completed', 'cancelled']:
         raise HTTPException(status_code=400, detail="Неверный статус")
     
     order.status = new_status
+    
+    # Начисляем бонусы при подтверждении заказа
+    if old_status == 'pending' and new_status == 'confirmed':
+        user = order.user
+        
+        # Вычисляем процент кэшбэка
+        cashback_percent = get_cashback_percent(user.loyalty_level)
+        bonus_earned = round((order.total_amount + order.bonus_used) * cashback_percent / 100, 2)
+        
+        # Начисляем бонусы
+        user.bonus_balance += bonus_earned
+        user.total_orders_count += 1
+        
+        # Обновляем уровень лояльности
+        new_level = calculate_loyalty_level(user.total_orders_count)
+        if new_level != user.loyalty_level:
+            user.loyalty_level = new_level
+        
+        # Сохраняем информацию о начисленных бонусах в заказе
+        order.bonus_earned = bonus_earned
+        
+        # Создаем транзакцию начисления
+        bonus_transaction = models.BonusTransaction(
+            user_id=user.id,
+            amount=bonus_earned,
+            transaction_type="earned",
+            description=f"Начислено за заказ #{order.id} ({cashback_percent}% кэшбэк)",
+            order_id=order.id
+        )
+        db.add(bonus_transaction)
+    
     db.commit()
     
     return {"message": "Статус обновлен", "order_id": order_id, "status": new_status}
