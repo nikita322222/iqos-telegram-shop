@@ -17,22 +17,8 @@ const ProductCard = ({ product, onFavoriteToggle, isFavorite }) => {
     navigate(`/product/${product.id}`)
   }
 
-  const getBadgeClass = (badge) => {
-    if (!badge) return ''
-    if (badge === 'ХИТ') return 'badge-hit'
-    if (badge === 'NEW') return 'badge-new'
-    if (badge === 'СКИДКА') return 'badge-sale'
-    return ''
-  }
-
   return (
     <div className="product-card" onClick={handleCardClick} style={{ cursor: 'pointer' }}>
-      {product.badge && (
-        <div className={`product-badge ${getBadgeClass(product.badge)}`}>
-          {product.badge}
-        </div>
-      )}
-      
       <img
         src={product.image_url || 'https://via.placeholder.com/300?text=No+Image'}
         alt={product.name}

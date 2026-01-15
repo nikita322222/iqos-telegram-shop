@@ -85,19 +85,11 @@ const ProductPage = ({ tg }) => {
     return null
   }
 
-  const getBadgeClass = (badge) => {
-    if (!badge) return ''
-    if (badge === 'ХИТ') return 'badge-hit'
-    if (badge === 'NEW') return 'badge-new'
-    if (badge === 'СКИДКА') return 'badge-sale'
-    return ''
-  }
-
   return (
     <div>
       <div style={{ marginBottom: '16px' }}>
         <button
-          onClick={() => navigate('/catalog')}
+          onClick={() => navigate(-1)}
           style={{
             background: 'var(--secondary-bg-color)',
             border: 'none',
@@ -130,14 +122,6 @@ const ProductPage = ({ tg }) => {
             e.target.src = 'https://via.placeholder.com/400?text=No+Image'
           }}
         />
-        
-        {product.badge && (
-          <div className={`product-badge ${getBadgeClass(product.badge)}`}
-            style={{ position: 'absolute', top: '16px', left: '16px' }}
-          >
-            {product.badge}
-          </div>
-        )}
 
         <button
           onClick={handleFavoriteToggle}
