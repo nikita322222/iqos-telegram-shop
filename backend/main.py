@@ -74,6 +74,38 @@ def get_current_user_info(
     return user
 
 
+@app.post("/api/users/update-info")
+def update_user_info(
+    user_data: dict,
+    db: Session = Depends(get_db)
+):
+    """Обновление информации о пользователе из Telegram"""
+    telegram_id = user_data.get('telegram_id')
+    
+    if not telegram_id:
+        raise HTTPException(status_code=400, detail="telegram_id обязателен")
+    
+    user = db.query(models.User).filter(
+        models.User.telegram_id == telegram_id
+    ).first()
+    
+    if not user:
+        raise HTTPException(status_code=404, detail="Пользователь не найден")
+    
+    # Обновляем данные
+    if 'username' in user_data and user_data['username']:
+        user.username = user_data['username']
+    if 'first_name' in user_data and user_data['first_name']:
+        user.first_name = user_data['first_name']
+    if 'last_name' in user_data and user_data['last_name']:
+        user.last_name = user_data['last_name']
+    
+    db.commit()
+    db.refresh(user)
+    
+    return {"message": "Данные пользователя обновлены", "user_id": user.id}
+
+
 # === PRODUCT ENDPOINTS ===
 
 @app.get("/api/products/debug", response_model=List[schemas.Product])
