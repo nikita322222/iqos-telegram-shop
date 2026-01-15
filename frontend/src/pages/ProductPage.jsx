@@ -97,9 +97,9 @@ const ProductPage = ({ tg }) => {
     <div>
       <div style={{ marginBottom: '16px' }}>
         <button
-          onClick={() => navigate(-1)}
+          onClick={() => navigate('/catalog')}
           style={{
-            background: 'var(--tg-theme-secondary-bg-color)',
+            background: 'var(--secondary-bg-color)',
             border: 'none',
             borderRadius: '12px',
             padding: '12px 16px',
@@ -107,7 +107,8 @@ const ProductPage = ({ tg }) => {
             cursor: 'pointer',
             display: 'flex',
             alignItems: 'center',
-            gap: '8px'
+            gap: '8px',
+            color: 'var(--text-color)'
           }}
         >
           ← Назад
@@ -166,7 +167,7 @@ const ProductPage = ({ tg }) => {
 
       <div style={{ 
         fontSize: '14px', 
-        color: 'var(--tg-theme-hint-color)', 
+        color: 'var(--hint-color)', 
         marginBottom: '16px' 
       }}>
         {product.category}
@@ -175,7 +176,7 @@ const ProductPage = ({ tg }) => {
       <div style={{ 
         fontSize: '28px', 
         fontWeight: '700', 
-        color: 'var(--tg-theme-button-color)',
+        color: 'var(--button-color)',
         marginBottom: '20px'
       }}>
         {product.price} BYN
@@ -189,7 +190,7 @@ const ProductPage = ({ tg }) => {
           <p style={{ 
             fontSize: '15px', 
             lineHeight: '1.5',
-            color: 'var(--tg-theme-text-color)',
+            color: 'var(--text-color)',
             whiteSpace: 'pre-wrap'
           }}>
             {product.description}
@@ -200,10 +201,10 @@ const ProductPage = ({ tg }) => {
       <div style={{ 
         marginBottom: '20px',
         padding: '16px',
-        background: 'var(--tg-theme-secondary-bg-color)',
+        background: 'var(--secondary-bg-color)',
         borderRadius: '12px'
       }}>
-        <div style={{ fontSize: '14px', color: 'var(--tg-theme-hint-color)', marginBottom: '8px' }}>
+        <div style={{ fontSize: '14px', color: 'var(--hint-color)', marginBottom: '8px' }}>
           Наличие: {product.stock > 0 ? `✅ В наличии (${product.stock} шт.)` : '❌ Нет в наличии'}
         </div>
       </div>
@@ -237,8 +238,9 @@ const ProductPage = ({ tg }) => {
         left: 0,
         right: 0,
         padding: '16px',
-        background: 'var(--tg-theme-bg-color)',
-        borderTop: '1px solid var(--tg-theme-hint-color)'
+        background: 'var(--bg-color)',
+        borderTop: '1px solid var(--border-color)',
+        boxShadow: '0 -2px 10px var(--shadow-color)'
       }}>
         <button
           onClick={handleAddToCart}
