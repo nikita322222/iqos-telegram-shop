@@ -66,7 +66,7 @@ const ProductCard = ({ product, onFavoriteToggle, isFavorite }) => {
                 height: '40px',
                 border: 'none',
                 borderRadius: '8px',
-                background: 'var(--tg-theme-secondary-bg-color, #f4f4f5)',
+                background: 'var(--secondary-bg-color)',
                 fontSize: '20px',
                 cursor: 'pointer'
               }}

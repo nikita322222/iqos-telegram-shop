@@ -46,7 +46,7 @@ const ProfilePage = ({ tg }) => {
       
       {user && (
         <div style={{
-          background: 'var(--tg-theme-secondary-bg-color)',
+          background: 'var(--secondary-bg-color)',
           padding: '16px',
           borderRadius: '12px',
           marginBottom: '20px'
@@ -55,7 +55,7 @@ const ProfilePage = ({ tg }) => {
             {user.first_name} {user.last_name}
           </div>
           {user.username && (
-            <div style={{ color: 'var(--tg-theme-hint-color)' }}>
+            <div style={{ color: 'var(--hint-color)' }}>
               @{user.username}
             </div>
           )}
@@ -75,7 +75,7 @@ const ProfilePage = ({ tg }) => {
             <div
               key={order.id}
               style={{
-                background: 'var(--tg-theme-secondary-bg-color)',
+                background: 'var(--secondary-bg-color)',
                 padding: '16px',
                 borderRadius: '12px',
                 marginBottom: '12px'
@@ -87,12 +87,12 @@ const ProfilePage = ({ tg }) => {
                 marginBottom: '8px'
               }}>
                 <span style={{ fontWeight: '600' }}>Заказ №{order.id}</span>
-                <span style={{ color: 'var(--tg-theme-button-color)', fontWeight: '700' }}>
+                <span style={{ color: 'var(--button-color)', fontWeight: '700' }}>
                   {order.total_amount} BYN
                 </span>
               </div>
               
-              <div style={{ fontSize: '14px', color: 'var(--tg-theme-hint-color)', marginBottom: '8px' }}>
+              <div style={{ fontSize: '14px', color: 'var(--hint-color)', marginBottom: '8px' }}>
                 {new Date(order.created_at).toLocaleDateString('ru-RU', {
                   day: 'numeric',
                   month: 'long',
@@ -112,7 +112,7 @@ const ProfilePage = ({ tg }) => {
                   <div style={{ fontWeight: '600', marginBottom: '4px' }}>
                     {order.delivery_type === 'minsk' ? '🚚 Доставка по Минску' : '📦 Евро почта'}
                   </div>
-                  <div style={{ color: 'var(--tg-theme-hint-color)' }}>
+                  <div style={{ color: 'var(--hint-color)' }}>
                     {order.full_name && <div>ФИО: {order.full_name}</div>}
                     {order.phone && <div>Телефон: {order.phone}</div>}
                     {order.delivery_type === 'minsk' && order.delivery_address && (
@@ -139,7 +139,7 @@ const ProfilePage = ({ tg }) => {
                 <div style={{ marginTop: '12px', fontSize: '14px' }}>
                   <div style={{ fontWeight: '600', marginBottom: '4px' }}>Товары:</div>
                   {order.items.map((item, idx) => (
-                    <div key={idx} style={{ color: 'var(--tg-theme-hint-color)' }}>
+                    <div key={idx} style={{ color: 'var(--hint-color)' }}>
                       • {item.product.name} × {item.quantity}
                     </div>
                   ))}

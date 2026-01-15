@@ -42,7 +42,7 @@ const CartPage = () => {
               <div style={{ fontWeight: '600', marginBottom: '4px' }}>
                 {item.name}
               </div>
-              <div style={{ color: 'var(--tg-theme-button-color)', fontWeight: '700' }}>
+              <div style={{ color: 'var(--button-color)', fontWeight: '700' }}>
                 {item.price * item.quantity} BYN
               </div>
               
@@ -84,8 +84,9 @@ const CartPage = () => {
         left: 0,
         right: 0,
         padding: '16px',
-        background: 'var(--tg-theme-bg-color)',
-        borderTop: '1px solid var(--tg-theme-hint-color)'
+        background: 'var(--bg-color)',
+        borderTop: '1px solid var(--border-color)',
+        boxShadow: '0 -2px 10px var(--shadow-color)'
       }}>
         <div style={{
           display: 'flex',
