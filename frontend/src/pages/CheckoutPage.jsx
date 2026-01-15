@@ -400,7 +400,7 @@ const CheckoutPage = ({ tg }) => {
             <div className="bonus-section">
               <div className="bonus-info">
                 <span>Доступно бонусов:</span>
-                <span className="bonus-balance">{bonusBalance.toFixed(2)} ₽</span>
+                <span className="bonus-balance">{bonusBalance.toFixed(2)} BYN</span>
               </div>
               
               <label className="checkbox-label">
@@ -437,7 +437,7 @@ const CheckoutPage = ({ tg }) => {
                     className="form-input"
                   />
                   <div className="bonus-hint">
-                    Максимум: {Math.min(bonusBalance, getTotalPrice()).toFixed(2)} ₽
+                    Максимум: {Math.min(bonusBalance, getTotalPrice()).toFixed(2)} BYN
                   </div>
                 </div>
               )}

@@ -488,10 +488,11 @@ body {
 
 /* Bonus Section in Checkout */
 .bonus-section {
-  background: var(--tg-theme-secondary-bg-color, #f5f5f5);
+  background: var(--tg-theme-bg-color, #ffffff);
   border-radius: 12px;
   padding: 15px;
   margin-top: 10px;
+  border: 1px solid var(--tg-theme-hint-color, #e0e0e0);
 }
 
 .bonus-info {
@@ -560,4 +561,11 @@ body {
   padding-top: 8px;
   border-top: 2px solid var(--tg-theme-hint-color, #e0e0e0);
   margin-top: 8px;
+}
+
+
+/* Dark theme for bonus section */
+[data-theme="dark"] .bonus-section {
+  background: var(--tg-theme-secondary-bg-color, #2a2a2a);
+  border-color: var(--tg-theme-hint-color, #444444);
 }

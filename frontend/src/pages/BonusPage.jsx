@@ -119,8 +119,8 @@ function BonusPage() {
       <div className="bonus-header">
         <div className="bonus-balance-card">
           <div className="balance-label">Ваш баланс</div>
-          <div className="balance-amount">{bonusInfo.bonus_balance.toFixed(2)} ₽</div>
-          <div className="balance-subtitle">1 бонус = 1 рубль</div>
+          <div className="balance-amount">{bonusInfo.bonus_balance.toFixed(2)} BYN</div>
+          <div className="balance-subtitle">1 бонус = 1 белорусский рубль</div>
         </div>
       </div>
 
@@ -182,7 +182,7 @@ function BonusPage() {
           <div className="info-content">
             <div className="info-title">Оплачивайте бонусами</div>
             <div className="info-text">
-              Используйте накопленные бонусы для оплаты следующих заказов. 1 бонус = 1 рубль
+              Используйте накопленные бонусы для оплаты следующих заказов. 1 бонус = 1 белорусский рубль
             </div>
           </div>
         </div>
@@ -241,7 +241,7 @@ function BonusPage() {
                 <div className="transaction-date">{formatDate(transaction.created_at)}</div>
               </div>
               <div className={`transaction-amount ${transaction.amount > 0 ? 'positive' : 'negative'}`}>
-                {transaction.amount > 0 ? '+' : ''}{transaction.amount.toFixed(2)} ₽
+                {transaction.amount > 0 ? '+' : ''}{transaction.amount.toFixed(2)} BYN
               </div>
             </div>
           ))}
