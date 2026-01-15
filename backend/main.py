@@ -29,31 +29,16 @@ def startup_event():
         init_db()
         print("✅ База данных инициализирована")
         
-        # Автоматически создаем тестовые данные если БД пустая
+        # Проверяем количество товаров
         from database import SessionLocal
         import models
         
         db = SessionLocal()
         try:
-            # Проверяем есть ли пользователи
-            user_count = db.query(models.User).count()
-            if user_count == 0:
-                # Создаем тестового пользователя
-                user = models.User(
-                    telegram_id=576978144,
-                    username="nikita_user",
-                    first_name="Nikita",
-                    last_name="Morozov",
-                    is_active=True
-                )
-                db.add(user)
-                db.commit()
-                print("✅ Тестовый пользователь создан")
-            
-            # Проверяем есть ли товары
             product_count = db.query(models.Product).count()
+            user_count = db.query(models.User).count()
             print(f"📦 Товаров в базе: {product_count}")
-            
+            print(f"👥 Пользователей в базе: {user_count}")
         finally:
             db.close()
     except Exception as e:
