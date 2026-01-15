@@ -77,6 +77,16 @@ const ProductPage = ({ tg }) => {
     }
   }
 
+  const handleBackClick = () => {
+    // Проверяем, есть ли история навигации
+    if (window.history.length > 1) {
+      navigate(-1)
+    } else {
+      // Если истории нет, возвращаемся в каталог
+      navigate('/catalog')
+    }
+  }
+
   if (loading) {
     return <div className="loading">Загрузка...</div>
   }
@@ -89,7 +99,7 @@ const ProductPage = ({ tg }) => {
     <div>
       <div style={{ marginBottom: '16px' }}>
         <button
-          onClick={() => navigate(-1)}
+          onClick={handleBackClick}
           style={{
             background: 'var(--secondary-bg-color)',
             border: 'none',

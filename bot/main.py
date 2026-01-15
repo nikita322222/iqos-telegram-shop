@@ -122,11 +122,21 @@ async def send_order_notification(order_data: dict):
         # Формируем текст уведомления
         order_id = order_data.get('id')
         delivery_type = order_data.get('delivery_type')
+        user = order_data.get('user', {})
         
         message_text = (
             "🔔 <b>НОВЫЙ ЗАКАЗ</b>\n\n"
             f"📋 <b>Заказ №{order_id}</b>\n"
             f"👤 <b>Клиент:</b> {order_data.get('full_name')}\n"
+        )
+        
+        # Добавляем username если есть
+        if user.get('username'):
+            message_text += f"👨‍💼 <b>Telegram:</b> @{user.get('username')}\n"
+        elif user.get('telegram_id'):
+            message_text += f"👨‍💼 <b>Telegram ID:</b> {user.get('telegram_id')}\n"
+        
+        message_text += (
             f"📱 <b>Телефон:</b> {order_data.get('phone')}\n"
             f"💰 <b>Сумма:</b> {order_data.get('total_amount')} BYN\n"
             f"💳 <b>Оплата:</b> {'Наличные' if order_data.get('payment_method') == 'cash' else 'USDT'}\n\n"
