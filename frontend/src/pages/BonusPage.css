@@ -44,7 +44,7 @@
 
 /* Карточка уровня */
 .level-card {
-  background: var(--tg-theme-secondary-bg-color, #f5f5f5);
+  background: var(--tg-theme-bg-color, #ffffff);
   border-radius: 16px;
   padding: 20px;
   margin-bottom: 20px;
@@ -93,7 +93,7 @@
 
 .progress-bar {
   height: 8px;
-  background: var(--tg-theme-bg-color, #ffffff);
+  background: var(--tg-theme-secondary-bg-color, #e0e0e0);
   border-radius: 10px;
   overflow: hidden;
   margin-bottom: 8px;
@@ -136,10 +136,11 @@
 .info-card {
   display: flex;
   gap: 15px;
-  background: var(--tg-theme-secondary-bg-color, #f5f5f5);
+  background: var(--tg-theme-bg-color, #ffffff);
   border-radius: 12px;
   padding: 15px;
   margin-bottom: 12px;
+  border: 1px solid var(--tg-theme-hint-color, #e0e0e0);
 }
 
 .info-icon {
@@ -180,12 +181,13 @@
   display: flex;
   align-items: center;
   gap: 15px;
-  background: var(--tg-theme-secondary-bg-color, #f5f5f5);
+  background: var(--tg-theme-bg-color, #ffffff);
   border-radius: 12px;
   padding: 15px;
   margin-bottom: 10px;
   opacity: 0.6;
   transition: all 0.3s ease;
+  border: 1px solid var(--tg-theme-hint-color, #e0e0e0);
 }
 
 .level-item.active {
@@ -230,10 +232,11 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  background: var(--tg-theme-secondary-bg-color, #f5f5f5);
+  background: var(--tg-theme-bg-color, #ffffff);
   border-radius: 12px;
   padding: 12px;
   margin-bottom: 8px;
+  border: 1px solid var(--tg-theme-hint-color, #e0e0e0);
 }
 
 .transaction-icon {
@@ -243,7 +246,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--tg-theme-bg-color, #ffffff);
+  background: var(--tg-theme-secondary-bg-color, #f5f5f5);
   border-radius: 50%;
   flex-shrink: 0;
 }
@@ -291,6 +294,7 @@
 [data-theme="dark"] .level-item,
 [data-theme="dark"] .transaction-item {
   background: var(--tg-theme-secondary-bg-color, #2a2a2a);
+  border-color: var(--tg-theme-hint-color, #444444);
 }
 
 [data-theme="dark"] .progress-bar {

@@ -19,21 +19,26 @@ function BonusPage() {
     try {
       const initData = window.Telegram?.WebApp?.initData || '';
       
+      console.log('Loading bonus data...');
+      
       // Загружаем информацию о бонусах
       const bonusResponse = await axios.get(`${API_URL}/api/bonus/info`, {
         headers: { 'X-Telegram-Init-Data': initData }
       });
+      console.log('Bonus info:', bonusResponse.data);
       setBonusInfo(bonusResponse.data);
 
       // Загружаем историю транзакций
       const transactionsResponse = await axios.get(`${API_URL}/api/bonus/transactions`, {
         headers: { 'X-Telegram-Init-Data': initData }
       });
+      console.log('Transactions:', transactionsResponse.data);
       setTransactions(transactionsResponse.data);
       
       setLoading(false);
     } catch (error) {
       console.error('Ошибка загрузки данных:', error);
+      console.error('Error details:', error.response?.data);
       setLoading(false);
     }
   };
