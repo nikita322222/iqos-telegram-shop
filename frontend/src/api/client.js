@@ -33,6 +33,10 @@ export const api = {
   
   // User
   getCurrentUser: () => apiClient.get('/api/users/me'),
+  
+  // Bonus
+  getBonusInfo: () => apiClient.get('/api/bonus/info'),
+  getBonusTransactions: (limit = 20) => apiClient.get('/api/bonus/transactions', { params: { limit } }),
 }
 
 export default apiClient

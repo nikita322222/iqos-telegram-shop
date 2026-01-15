@@ -1,9 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import { api } from '../api/client';
 import './BonusPage.css';
-
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
 function BonusPage() {
   const navigate = useNavigate();
@@ -17,21 +15,15 @@ function BonusPage() {
 
   const loadBonusData = async () => {
     try {
-      const initData = window.Telegram?.WebApp?.initData || '';
-      
       console.log('Loading bonus data...');
       
       // Загружаем информацию о бонусах
-      const bonusResponse = await axios.get(`${API_URL}/api/bonus/info`, {
-        headers: { 'X-Telegram-Init-Data': initData }
-      });
+      const bonusResponse = await api.getBonusInfo();
       console.log('Bonus info:', bonusResponse.data);
       setBonusInfo(bonusResponse.data);
 
       // Загружаем историю транзакций
-      const transactionsResponse = await axios.get(`${API_URL}/api/bonus/transactions`, {
-        headers: { 'X-Telegram-Init-Data': initData }
-      });
+      const transactionsResponse = await api.getBonusTransactions();
       console.log('Transactions:', transactionsResponse.data);
       setTransactions(transactionsResponse.data);
       
