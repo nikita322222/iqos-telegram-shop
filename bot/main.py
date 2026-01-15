@@ -45,6 +45,8 @@ async def cmd_start(message: Message):
     """Обработчик команды /start"""
     telegram_id = message.from_user.id
     username = message.from_user.username or "Пользователь"
+    first_name = message.from_user.first_name or ""
+    last_name = message.from_user.last_name or ""
     
     # Проверяем доступ пользователя
     has_access = await check_user_access(telegram_id)
@@ -57,6 +59,27 @@ async def cmd_start(message: Message):
             parse_mode="HTML"
         )
         return
+    
+    # Обновляем данные пользователя в базе
+    try:
+        import ssl
+        ssl_context = ssl.create_default_context()
+        ssl_context.check_hostname = False
+        ssl_context.verify_mode = ssl.CERT_NONE
+        
+        connector = aiohttp.TCPConnector(ssl=ssl_context)
+        async with aiohttp.ClientSession(connector=connector) as session:
+            await session.post(
+                f"{config.BACKEND_URL}/api/users/update-info",
+                json={
+                    "telegram_id": telegram_id,
+                    "username": message.from_user.username,
+                    "first_name": first_name,
+                    "last_name": last_name
+                }
+            )
+    except Exception as e:
+        logger.error(f"Ошибка обновления данных пользователя: {e}")
     
     # Создаем кнопку для открытия Mini App
     builder = InlineKeyboardBuilder()
@@ -130,11 +153,14 @@ async def send_order_notification(order_data: dict):
             f"👤 <b>Клиент:</b> {order_data.get('full_name')}\n"
         )
         
-        # Добавляем username если есть
-        if user.get('username'):
-            message_text += f"👨‍💼 <b>Telegram:</b> @{user.get('username')}\n"
-        elif user.get('telegram_id'):
-            message_text += f"👨‍💼 <b>Telegram ID:</b> {user.get('telegram_id')}\n"
+        # Добавляем username или telegram_id
+        username = user.get('username')
+        telegram_id = user.get('telegram_id')
+        
+        if username:
+            message_text += f"👨‍💼 <b>Telegram:</b> @{username}\n"
+        elif telegram_id:
+            message_text += f"👨‍💼 <b>Telegram ID:</b> <a href='tg://user?id={telegram_id}'>{telegram_id}</a>\n"
         
         message_text += (
             f"📱 <b>Телефон:</b> {order_data.get('phone')}\n"

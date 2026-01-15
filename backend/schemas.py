@@ -99,6 +99,7 @@ class Order(OrderBase):
     status: str
     created_at: datetime
     items: List[OrderItem]
+    user: User
     
     class Config:
         from_attributes = True
