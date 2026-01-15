@@ -1,14 +1,14 @@
 .bonus-page {
   padding: 20px;
   padding-bottom: 100px;
-  background: var(--tg-theme-bg-color, #ffffff);
+  background: #f5f5f5;
   min-height: 100vh;
 }
 
 .loading, .error {
   text-align: center;
   padding: 40px 20px;
-  color: var(--tg-theme-text-color, #000000);
+  color: #000000;
 }
 
 /* Шапка с балансом */
@@ -44,7 +44,7 @@
 
 /* Карточка уровня */
 .level-card {
-  background: var(--tg-theme-bg-color, #ffffff);
+  background: #ffffff;
   border-radius: 16px;
   padding: 20px;
   margin-bottom: 20px;
@@ -69,13 +69,13 @@
 .level-name {
   font-size: 24px;
   font-weight: bold;
-  color: var(--tg-theme-text-color, #000000);
+  color: #000000;
   margin-bottom: 5px;
 }
 
 .level-cashback {
   font-size: 16px;
-  color: var(--tg-theme-hint-color, #999999);
+  color: #666666;
 }
 
 /* Прогресс */
@@ -87,13 +87,13 @@
   display: flex;
   justify-content: space-between;
   font-size: 13px;
-  color: var(--tg-theme-hint-color, #999999);
+  color: #666666;
   margin-bottom: 8px;
 }
 
 .progress-bar {
   height: 8px;
-  background: var(--tg-theme-secondary-bg-color, #e0e0e0);
+  background: #e0e0e0;
   border-radius: 10px;
   overflow: hidden;
   margin-bottom: 8px;
@@ -107,7 +107,7 @@
 
 .progress-info {
   font-size: 13px;
-  color: var(--tg-theme-hint-color, #999999);
+  color: #666666;
   text-align: center;
 }
 
@@ -129,18 +129,18 @@
 .bonus-info-section h3 {
   font-size: 20px;
   font-weight: bold;
-  color: var(--tg-theme-text-color, #000000);
+  color: #000000;
   margin-bottom: 15px;
 }
 
 .info-card {
   display: flex;
   gap: 15px;
-  background: var(--tg-theme-bg-color, #ffffff);
+  background: #ffffff;
   border-radius: 12px;
   padding: 15px;
   margin-bottom: 12px;
-  border: 1px solid var(--tg-theme-hint-color, #e0e0e0);
+  border: 1px solid #e0e0e0;
 }
 
 .info-icon {
@@ -155,13 +155,13 @@
 .info-title {
   font-size: 16px;
   font-weight: 600;
-  color: var(--tg-theme-text-color, #000000);
+  color: #000000;
   margin-bottom: 5px;
 }
 
 .info-text {
   font-size: 14px;
-  color: var(--tg-theme-hint-color, #999999);
+  color: #666666;
   line-height: 1.4;
 }
 
@@ -173,7 +173,7 @@
 .levels-section h3 {
   font-size: 20px;
   font-weight: bold;
-  color: var(--tg-theme-text-color, #000000);
+  color: #000000;
   margin-bottom: 15px;
 }
 
@@ -181,18 +181,18 @@
   display: flex;
   align-items: center;
   gap: 15px;
-  background: var(--tg-theme-bg-color, #ffffff);
+  background: #ffffff;
   border-radius: 12px;
   padding: 15px;
   margin-bottom: 10px;
   opacity: 0.6;
   transition: all 0.3s ease;
-  border: 1px solid var(--tg-theme-hint-color, #e0e0e0);
+  border: 1px solid #e0e0e0;
 }
 
 .level-item.active {
   opacity: 1;
-  border: 2px solid var(--tg-theme-button-color, #3390ec);
+  border: 2px solid #3390ec;
   transform: scale(1.02);
 }
 
@@ -207,13 +207,13 @@
 .level-item-name {
   font-size: 18px;
   font-weight: 600;
-  color: var(--tg-theme-text-color, #000000);
+  color: #000000;
   margin-bottom: 3px;
 }
 
 .level-item-desc {
   font-size: 13px;
-  color: var(--tg-theme-hint-color, #999999);
+  color: #666666;
 }
 
 /* История транзакций */
@@ -224,7 +224,7 @@
 .transactions-section h3 {
   font-size: 20px;
   font-weight: bold;
-  color: var(--tg-theme-text-color, #000000);
+  color: #000000;
   margin-bottom: 15px;
 }
 
@@ -232,11 +232,11 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  background: var(--tg-theme-bg-color, #ffffff);
+  background: #ffffff;
   border-radius: 12px;
   padding: 12px;
   margin-bottom: 8px;
-  border: 1px solid var(--tg-theme-hint-color, #e0e0e0);
+  border: 1px solid #e0e0e0;
 }
 
 .transaction-icon {
@@ -246,7 +246,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--tg-theme-secondary-bg-color, #f5f5f5);
+  background: #f5f5f5;
   border-radius: 50%;
   flex-shrink: 0;
 }
@@ -258,7 +258,7 @@
 
 .transaction-desc {
   font-size: 14px;
-  color: var(--tg-theme-text-color, #000000);
+  color: #000000;
   margin-bottom: 3px;
   white-space: nowrap;
   overflow: hidden;
@@ -267,7 +267,7 @@
 
 .transaction-date {
   font-size: 12px;
-  color: var(--tg-theme-hint-color, #999999);
+  color: #666666;
 }
 
 .transaction-amount {
@@ -286,21 +286,45 @@
 
 /* Темная тема */
 [data-theme="dark"] .bonus-page {
-  background: var(--tg-theme-bg-color, #1a1a1a);
+  background: #1a1a1a;
+}
+
+[data-theme="dark"] .loading,
+[data-theme="dark"] .error {
+  color: #ffffff;
 }
 
 [data-theme="dark"] .level-card,
 [data-theme="dark"] .info-card,
 [data-theme="dark"] .level-item,
 [data-theme="dark"] .transaction-item {
-  background: var(--tg-theme-secondary-bg-color, #2a2a2a);
-  border-color: var(--tg-theme-hint-color, #444444);
+  background: #2a2a2a;
+  border-color: #444444;
+}
+
+[data-theme="dark"] .level-name,
+[data-theme="dark"] .info-title,
+[data-theme="dark"] .level-item-name,
+[data-theme="dark"] .transaction-desc,
+[data-theme="dark"] .bonus-info-section h3,
+[data-theme="dark"] .levels-section h3,
+[data-theme="dark"] .transactions-section h3 {
+  color: #ffffff;
+}
+
+[data-theme="dark"] .level-cashback,
+[data-theme="dark"] .progress-header,
+[data-theme="dark"] .progress-info,
+[data-theme="dark"] .info-text,
+[data-theme="dark"] .level-item-desc,
+[data-theme="dark"] .transaction-date {
+  color: #999999;
 }
 
 [data-theme="dark"] .progress-bar {
-  background: var(--tg-theme-bg-color, #1a1a1a);
+  background: #1a1a1a;
 }
 
 [data-theme="dark"] .transaction-icon {
-  background: var(--tg-theme-bg-color, #1a1a1a);
+  background: #1a1a1a;
 }
