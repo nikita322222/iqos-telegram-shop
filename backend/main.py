@@ -304,9 +304,13 @@ def create_order(
     
     # Обработка бонусов
     bonus_to_use = order_data.bonus_to_use or 0.0
+    max_bonus_allowed = total_amount * 0.3  # Максимум 30% от суммы заказа
+    
     if bonus_to_use > 0:
         if bonus_to_use > user.bonus_balance:
             raise HTTPException(status_code=400, detail="Недостаточно бонусов")
+        if bonus_to_use > max_bonus_allowed:
+            raise HTTPException(status_code=400, detail=f"Можно использовать максимум 30% от суммы заказа ({max_bonus_allowed:.2f} BYN)")
         if bonus_to_use > total_amount:
             raise HTTPException(status_code=400, detail="Бонусов больше чем сумма заказа")
     
