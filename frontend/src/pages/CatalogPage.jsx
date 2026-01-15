@@ -98,7 +98,7 @@ const CatalogPage = ({ tg }) => {
     return (
       <div>
         <h1 className="page-title">Каталог</h1>
-        <p style={{ color: 'var(--tg-theme-hint-color, #999)', marginBottom: '20px' }}>
+        <p style={{ color: 'var(--hint-color)', marginBottom: '20px' }}>
           Выберите категорию товаров
         </p>
 
@@ -108,7 +108,7 @@ const CatalogPage = ({ tg }) => {
               key={category.name}
               onClick={() => handleMainCategoryClick(category)}
               style={{
-                background: 'var(--tg-theme-secondary-bg-color, #f4f4f5)',
+                background: 'var(--secondary-bg-color)',
                 borderRadius: '16px',
                 padding: '24px',
                 cursor: 'pointer',
@@ -131,7 +131,7 @@ const CatalogPage = ({ tg }) => {
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                background: 'var(--tg-theme-button-color, #3390ec)20',
+                background: 'var(--button-color)20',
                 borderRadius: '12px'
               }}>
                 {category.icon}
@@ -140,7 +140,7 @@ const CatalogPage = ({ tg }) => {
                 <div style={{ fontSize: '20px', fontWeight: '600', marginBottom: '4px' }}>
                   {category.name}
                 </div>
-                <div style={{ fontSize: '14px', color: 'var(--tg-theme-hint-color, #999)' }}>
+                <div style={{ fontSize: '14px', color: 'var(--hint-color)' }}>
                   {category.subCategories.length} категорий →
                 </div>
               </div>
@@ -159,7 +159,7 @@ const CatalogPage = ({ tg }) => {
           <button
             onClick={handleBackToMain}
             style={{
-              background: 'var(--tg-theme-secondary-bg-color)',
+              background: 'var(--secondary-bg-color)',
               border: 'none',
               borderRadius: '12px',
               padding: '12px 16px',
@@ -167,7 +167,8 @@ const CatalogPage = ({ tg }) => {
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
-              gap: '4px'
+              gap: '4px',
+              color: 'var(--text-color)'
             }}
           >
             ← Назад
@@ -183,7 +184,7 @@ const CatalogPage = ({ tg }) => {
               key={subCategory}
               onClick={() => handleSubCategoryClick(subCategory)}
               style={{
-                background: 'var(--tg-theme-secondary-bg-color, #f4f4f5)',
+                background: 'var(--secondary-bg-color)',
                 borderRadius: '16px',
                 padding: '20px',
                 cursor: 'pointer',
@@ -204,7 +205,7 @@ const CatalogPage = ({ tg }) => {
                 fontSize: '16px',
                 fontWeight: '600',
                 lineHeight: '1.3',
-                color: 'var(--tg-theme-text-color)',
+                color: 'var(--text-color)',
                 marginBottom: '12px',
                 flex: 1,
                 display: 'flex',
@@ -246,7 +247,7 @@ const CatalogPage = ({ tg }) => {
         <button
           onClick={handleBackToSub}
           style={{
-            background: 'var(--tg-theme-secondary-bg-color)',
+            background: 'var(--secondary-bg-color)',
             border: 'none',
             borderRadius: '12px',
             padding: '12px 16px',
@@ -254,7 +255,8 @@ const CatalogPage = ({ tg }) => {
             cursor: 'pointer',
             display: 'flex',
             alignItems: 'center',
-            gap: '4px'
+            gap: '4px',
+            color: 'var(--text-color)'
           }}
         >
           ← Назад
@@ -266,7 +268,7 @@ const CatalogPage = ({ tg }) => {
         <div className="empty-state">
           <div className="empty-icon">📦</div>
           <p>Товары не найдены</p>
-          <p style={{ fontSize: '14px', marginTop: '8px', color: 'var(--tg-theme-hint-color)' }}>
+          <p style={{ fontSize: '14px', marginTop: '8px', color: 'var(--hint-color)' }}>
             В этой категории пока нет товаров
           </p>
         </div>

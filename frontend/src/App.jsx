@@ -9,8 +9,28 @@ import CartPage from './pages/CartPage'
 import CheckoutPage from './pages/CheckoutPage'
 import ProfilePage from './pages/ProfilePage'
 import { CartProvider } from './context/CartContext'
+import { ThemeProvider, useTheme } from './context/ThemeContext'
 
-function App() {
+function ThemeToggle() {
+  const { theme, toggleTheme } = useTheme()
+  
+  return (
+    <button 
+      className="theme-toggle"
+      onClick={toggleTheme}
+      aria-label="Переключить тему"
+    >
+      <span className="theme-toggle-icon">
+        {theme === 'light' ? '🌙' : '☀️'}
+      </span>
+      <span className="theme-toggle-text">
+        {theme === 'light' ? 'Темная' : 'Светлая'}
+      </span>
+    </button>
+  )
+}
+
+function AppContent() {
   const [tg, setTg] = useState(null)
 
   useEffect(() => {
@@ -27,9 +47,6 @@ function App() {
       
       setTg(webApp)
       
-      // Применяем тему Telegram
-      document.body.style.backgroundColor = webApp.backgroundColor
-      
       // Принудительно включаем скролл
       document.documentElement.style.overflow = 'scroll'
       document.documentElement.style.overflowX = 'hidden'
@@ -45,6 +62,7 @@ function App() {
   return (
     <CartProvider>
       <Router>
+        <ThemeToggle />
         <Layout tg={tg}>
           <Routes>
             <Route path="/" element={<CatalogPage tg={tg} />} />
@@ -58,6 +76,14 @@ function App() {
         </Layout>
       </Router>
     </CartProvider>
+  )
+}
+
+function App() {
+  return (
+    <ThemeProvider>
+      <AppContent />
+    </ThemeProvider>
   )
 }
 
