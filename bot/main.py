@@ -162,10 +162,30 @@ async def send_order_notification(order_data: dict):
         elif telegram_id:
             message_text += f"👨‍💼 <b>Telegram ID:</b> <a href='tg://user?id={telegram_id}'>{telegram_id}</a>\n"
         
+        # Расчет сумм
+        total_amount = order_data.get('total_amount', 0)
+        delivery_cost = order_data.get('delivery_cost', 0)
+        bonus_used = order_data.get('bonus_used', 0)
+        
+        # Сумма товаров (без доставки и бонусов)
+        items_total = total_amount - delivery_cost + bonus_used
+        
         message_text += (
-            f"📱 <b>Телефон:</b> {order_data.get('phone')}\n"
-            f"💰 <b>Сумма:</b> {order_data.get('total_amount')} BYN\n"
-            f"💳 <b>Оплата:</b> {'Наличные' if order_data.get('payment_method') == 'cash' else 'USDT'}\n\n"
+            f"📱 <b>Телефон:</b> {order_data.get('phone')}\n\n"
+            f"💰 <b>Сумма товаров:</b> {items_total:.2f} BYN\n"
+        )
+        
+        if delivery_cost > 0:
+            message_text += f"🚚 <b>Доставка:</b> {delivery_cost:.2f} BYN\n"
+        else:
+            message_text += f"🚚 <b>Доставка:</b> Бесплатно\n"
+        
+        if bonus_used > 0:
+            message_text += f"🎁 <b>Списано бонусов:</b> -{bonus_used:.2f} BYN\n"
+        
+        message_text += (
+            f"💵 <b>ИТОГО К ОПЛАТЕ:</b> {total_amount:.2f} BYN\n"
+            f"💳 <b>Способ оплаты:</b> {'Наличные' if order_data.get('payment_method') == 'cash' else 'USDT'}\n\n"
         )
         
         # Добавляем информацию о доставке
