@@ -108,6 +108,26 @@ const CheckoutPage = ({ tg }) => {
     return Object.keys(newErrors).length === 0
   }
 
+  // Расчет стоимости доставки
+  const getDeliveryCost = () => {
+    if (deliveryType === 'minsk') {
+      // Доставка по Минску: бесплатно от 300 BYN
+      return getTotalPrice() >= 300 ? 0 : 8
+    } else if (deliveryType === 'europost') {
+      // Евро почта: всегда 8 BYN
+      return 8
+    }
+    return 0
+  }
+
+  // Итоговая сумма с доставкой
+  const getFinalTotal = () => {
+    const subtotal = getTotalPrice()
+    const delivery = getDeliveryCost()
+    const bonusDiscount = useBonuses ? bonusToUse : 0
+    return subtotal + delivery - bonusDiscount
+  }
+
   const handleInputChange = (field, value) => {
     setFormData({ ...formData, [field]: value })
     // Убираем ошибку при вводе
@@ -448,28 +468,39 @@ const CheckoutPage = ({ tg }) => {
         {/* Итого */}
         <div className="checkout-footer">
           <div className="total-section">
-            {useBonuses && bonusToUse > 0 && (
-              <>
-                <div className="total-row">
-                  <span className="total-label">Сумма заказа:</span>
-                  <span className="total-amount">{getTotalPrice()} BYN</span>
-                </div>
-                <div className="total-row bonus-discount">
-                  <span className="total-label">Списано бонусов:</span>
-                  <span className="total-amount">-{bonusToUse.toFixed(2)} BYN</span>
-                </div>
-                <div className="total-row final-total">
-                  <span className="total-label">К оплате:</span>
-                  <span className="total-amount">{(getTotalPrice() - bonusToUse).toFixed(2)} BYN</span>
-                </div>
-              </>
-            )}
-            {(!useBonuses || bonusToUse === 0) && (
-              <div className="total-row">
-                <span className="total-label">Итого:</span>
-                <span className="total-amount">{getTotalPrice()} BYN</span>
+            <div className="total-row">
+              <span className="total-label">Сумма товаров:</span>
+              <span className="total-amount">{getTotalPrice()} BYN</span>
+            </div>
+            
+            <div className="total-row">
+              <span className="total-label">Доставка:</span>
+              <span className="total-amount">
+                {getDeliveryCost() === 0 ? (
+                  <span style={{ color: '#4CAF50' }}>Бесплатно</span>
+                ) : (
+                  `${getDeliveryCost()} BYN`
+                )}
+              </span>
+            </div>
+            
+            {deliveryType === 'minsk' && getTotalPrice() < 300 && (
+              <div className="delivery-hint">
+                Бесплатная доставка от 300 BYN
               </div>
             )}
+            
+            {useBonuses && bonusToUse > 0 && (
+              <div className="total-row bonus-discount">
+                <span className="total-label">Списано бонусов:</span>
+                <span className="total-amount">-{bonusToUse.toFixed(2)} BYN</span>
+              </div>
+            )}
+            
+            <div className="total-row final-total">
+              <span className="total-label">К оплате:</span>
+              <span className="total-amount">{getFinalTotal().toFixed(2)} BYN</span>
+            </div>
           </div>
           
           <button

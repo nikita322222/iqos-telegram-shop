@@ -314,14 +314,25 @@ def create_order(
         if bonus_to_use > total_amount:
             raise HTTPException(status_code=400, detail="Бонусов больше чем сумма заказа")
     
-    # Применяем бонусы к сумме заказа
-    final_amount = total_amount - bonus_to_use
+    # Расчет стоимости доставки
+    delivery_cost = 0.0
+    if order_data.delivery_type == 'minsk':
+        # Доставка по Минску: бесплатно от 300 BYN, иначе 8 BYN
+        if total_amount < 300:
+            delivery_cost = 8.0
+    elif order_data.delivery_type == 'europost':
+        # Евро почта: всегда 8 BYN
+        delivery_cost = 8.0
+    
+    # Применяем бонусы к сумме заказа (без учета доставки)
+    final_amount = total_amount - bonus_to_use + delivery_cost
     
     try:
         # Создаем заказ
         db_order = models.Order(
             user_id=user.id,
             total_amount=final_amount,
+            delivery_cost=delivery_cost,
             bonus_used=bonus_to_use,
             delivery_type=order_data.delivery_type,
             full_name=order_data.full_name,

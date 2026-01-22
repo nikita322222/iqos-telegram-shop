@@ -57,6 +57,7 @@ class Order(Base):
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     total_amount = Column(Float, nullable=False)
+    delivery_cost = Column(Float, default=0.0)  # Стоимость доставки
     bonus_used = Column(Float, default=0.0)  # Сколько бонусов использовано
     bonus_earned = Column(Float, default=0.0)  # Сколько бонусов начислено
     status = Column(String, default="pending")  # pending, confirmed, completed, cancelled

@@ -100,6 +100,7 @@ class Order(OrderBase):
     id: int
     user_id: int
     total_amount: float
+    delivery_cost: float = 0.0
     bonus_used: float = 0.0
     bonus_earned: float = 0.0
     status: str

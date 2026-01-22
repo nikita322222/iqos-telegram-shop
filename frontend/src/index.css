@@ -583,3 +583,17 @@ body {
 [data-theme="dark"] .total-row.final-total {
   border-top-color: #444444;
 }
+
+
+/* Delivery hint */
+.delivery-hint {
+  font-size: 12px;
+  color: #4CAF50;
+  text-align: center;
+  margin: 5px 0;
+  font-weight: 500;
+}
+
+[data-theme="dark"] .delivery-hint {
+  color: #66BB6A;
+}
