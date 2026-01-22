@@ -213,9 +213,13 @@ def get_products(
     category: str = None,
     search: str = None,
     sort_by: str = None,  # "price_asc" или "price_desc"
+    min_price: float = None,
+    max_price: float = None,
+    in_stock: bool = None,  # True = только в наличии
+    badge: str = None,  # "NEW", "ХИТ", "СКИДКА"
     db: Session = Depends(get_db)
 ):
-    """Получение списка товаров с поиском и сортировкой"""
+    """Получение списка товаров с поиском, сортировкой и фильтрами"""
     query = db.query(models.Product).filter(models.Product.is_active == True)
     
     if category:
@@ -225,6 +229,20 @@ def get_products(
         # Поиск по названию (регистронезависимый)
         search_pattern = f"%{search}%"
         query = query.filter(models.Product.name.ilike(search_pattern))
+    
+    # Фильтр по цене
+    if min_price is not None:
+        query = query.filter(models.Product.price >= min_price)
+    if max_price is not None:
+        query = query.filter(models.Product.price <= max_price)
+    
+    # Фильтр по наличию
+    if in_stock is True:
+        query = query.filter(models.Product.stock > 0)
+    
+    # Фильтр по бейджу (NEW, ХИТ, СКИДКА)
+    if badge:
+        query = query.filter(models.Product.badge == badge)
     
     # Сортировка
     if sort_by == "price_asc":
@@ -306,17 +324,30 @@ def create_order(
         if not product:
             raise HTTPException(status_code=404, detail=f"Товар с ID {item.product_id} не найден")
         
+        # КРИТИЧНО: Проверка остатков
         if product.stock < item.quantity:
-            raise HTTPException(status_code=400, detail=f"Недостаточно товара: {product.name}")
+            raise HTTPException(
+                status_code=400, 
+                detail=f"Недостаточно товара '{product.name}'. В наличии: {product.stock} шт."
+            )
         
         item_total = product.price * item.quantity
         total_amount += item_total
         
         order_items.append({
+            'product': product,
             'product_id': product.id,
             'quantity': item.quantity,
             'price': product.price
         })
+    
+    # КРИТИЧНО: Минимальная сумма заказа
+    MIN_ORDER_AMOUNT = 10.0  # 10 BYN минимум
+    if total_amount < MIN_ORDER_AMOUNT:
+        raise HTTPException(
+            status_code=400, 
+            detail=f"Минимальная сумма заказа: {MIN_ORDER_AMOUNT} BYN"
+        )
     
     # Обработка бонусов
     bonus_to_use = order_data.bonus_to_use or 0.0
@@ -364,13 +395,19 @@ def create_order(
         db.add(db_order)
         db.flush()
         
-        # Добавляем товары в заказ
+        # Добавляем товары в заказ и уменьшаем остатки
         for item_data in order_items:
             order_item = models.OrderItem(
                 order_id=db_order.id,
-                **item_data
+                product_id=item_data['product_id'],
+                quantity=item_data['quantity'],
+                price=item_data['price']
             )
             db.add(order_item)
+            
+            # КРИТИЧНО: Уменьшаем остатки товара
+            product = item_data['product']
+            product.stock -= item_data['quantity']
         
         # Списываем бонусы если использованы
         if bonus_to_use > 0:
@@ -485,12 +522,14 @@ def get_pending_orders(db: Session = Depends(get_db)):
 
 
 @app.patch("/api/orders/{order_id}/status")
-def update_order_status(
+async def update_order_status(
     order_id: int,
     status_data: dict,
     db: Session = Depends(get_db)
 ):
-    """Обновление статуса заказа"""
+    """Обновление статуса заказа с уведомлением клиента"""
+    import httpx
+    
     order = db.query(models.Order).filter(models.Order.id == order_id).first()
     
     if not order:
@@ -534,6 +573,56 @@ def update_order_status(
         db.add(bonus_transaction)
     
     db.commit()
+    
+    # Отправляем уведомление клиенту
+    try:
+        user = order.user
+        bot_token = settings.bot_token
+        
+        if new_status == 'confirmed':
+            message = (
+                f"✅ <b>Ваш заказ #{order.id} подтвержден!</b>\n\n"
+                f"💰 Сумма: {order.total_amount} BYN\n"
+            )
+            if order.bonus_earned > 0:
+                message += f"🎁 Начислено бонусов: +{order.bonus_earned} BYN\n"
+            
+            if order.delivery_type == 'minsk':
+                message += (
+                    f"\n🚚 Доставка по адресу:\n{order.delivery_address}\n"
+                    f"🕐 Время: {order.delivery_time}\n"
+                )
+                if order.delivery_date:
+                    message += f"📅 Дата: {order.delivery_date}\n"
+            else:
+                message += (
+                    f"\n📦 Отправка Евро почтой:\n"
+                    f"🏙 {order.city}, отделение {order.europost_office}\n"
+                )
+            
+            message += "\nСпасибо за заказ! 🎉"
+            
+        elif new_status == 'cancelled':
+            message = (
+                f"❌ <b>Ваш заказ #{order.id} отменен</b>\n\n"
+                f"К сожалению, мы не смогли выполнить ваш заказ.\n"
+                f"Если у вас есть вопросы, обратитесь к менеджеру @Heets_manager"
+            )
+        else:
+            message = None
+        
+        if message:
+            async with httpx.AsyncClient() as client:
+                await client.post(
+                    f"https://api.telegram.org/bot{bot_token}/sendMessage",
+                    json={
+                        "chat_id": user.telegram_id,
+                        "text": message,
+                        "parse_mode": "HTML"
+                    }
+                )
+    except Exception as e:
+        print(f"Ошибка отправки уведомления клиенту: {e}")
     
     return {"message": "Статус обновлен", "order_id": order_id, "status": new_status}
 
@@ -673,6 +762,128 @@ def remove_from_favorites(
     
     return {"message": "Товар удален из избранного"}
 
+
+# === SAVED ADDRESSES ENDPOINTS ===
+
+@app.get("/api/saved-addresses", response_model=List[schemas.SavedAddress])
+def get_saved_addresses(
+    current_user: dict = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Получение сохраненных адресов пользователя"""
+    user = db.query(models.User).filter(
+        models.User.telegram_id == current_user['telegram_id']
+    ).first()
+    
+    if not user:
+        raise HTTPException(status_code=404, detail="Пользователь не найден")
+    
+    addresses = db.query(models.SavedAddress).filter(
+        models.SavedAddress.user_id == user.id
+    ).order_by(models.SavedAddress.is_default.desc(), models.SavedAddress.created_at.desc()).all()
+    
+    return addresses
+
+
+@app.post("/api/saved-addresses", response_model=schemas.SavedAddress)
+def create_saved_address(
+    address_data: schemas.SavedAddressCreate,
+    current_user: dict = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Создание нового сохраненного адреса"""
+    user = db.query(models.User).filter(
+        models.User.telegram_id == current_user['telegram_id']
+    ).first()
+    
+    if not user:
+        raise HTTPException(status_code=404, detail="Пользователь не найден")
+    
+    # Если это адрес по умолчанию, убираем флаг у других
+    if address_data.is_default:
+        db.query(models.SavedAddress).filter(
+            models.SavedAddress.user_id == user.id
+        ).update({"is_default": False})
+    
+    address = models.SavedAddress(
+        user_id=user.id,
+        **address_data.dict()
+    )
+    db.add(address)
+    db.commit()
+    db.refresh(address)
+    
+    return address
+
+
+@app.put("/api/saved-addresses/{address_id}", response_model=schemas.SavedAddress)
+def update_saved_address(
+    address_id: int,
+    address_data: schemas.SavedAddressCreate,
+    current_user: dict = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Обновление сохраненного адреса"""
+    user = db.query(models.User).filter(
+        models.User.telegram_id == current_user['telegram_id']
+    ).first()
+    
+    if not user:
+        raise HTTPException(status_code=404, detail="Пользователь не найден")
+    
+    address = db.query(models.SavedAddress).filter(
+        models.SavedAddress.id == address_id,
+        models.SavedAddress.user_id == user.id
+    ).first()
+    
+    if not address:
+        raise HTTPException(status_code=404, detail="Адрес не найден")
+    
+    # Если это адрес по умолчанию, убираем флаг у других
+    if address_data.is_default and not address.is_default:
+        db.query(models.SavedAddress).filter(
+            models.SavedAddress.user_id == user.id,
+            models.SavedAddress.id != address_id
+        ).update({"is_default": False})
+    
+    for key, value in address_data.dict().items():
+        setattr(address, key, value)
+    
+    db.commit()
+    db.refresh(address)
+    
+    return address
+
+
+@app.delete("/api/saved-addresses/{address_id}")
+def delete_saved_address(
+    address_id: int,
+    current_user: dict = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Удаление сохраненного адреса"""
+    user = db.query(models.User).filter(
+        models.User.telegram_id == current_user['telegram_id']
+    ).first()
+    
+    if not user:
+        raise HTTPException(status_code=404, detail="Пользователь не найден")
+    
+    address = db.query(models.SavedAddress).filter(
+        models.SavedAddress.id == address_id,
+        models.SavedAddress.user_id == user.id
+    ).first()
+    
+    if not address:
+        raise HTTPException(status_code=404, detail="Адрес не найден")
+    
+    db.delete(address)
+    db.commit()
+    
+    return {"message": "Адрес удален"}
+
+
+# === ADMIN ENDPOINTS ===
 
 @app.post("/api/admin/import-products")
 def import_products_bulk(products: List[schemas.ProductCreate], db: Session = Depends(get_db)):

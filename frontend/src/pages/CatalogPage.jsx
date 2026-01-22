@@ -1,7 +1,24 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { api } from '../api/client'
 import ProductCard from '../components/ProductCard'
+
+// Debounce функция
+const useDebounce = (value, delay) => {
+  const [debouncedValue, setDebouncedValue] = useState(value)
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedValue(value)
+    }, delay)
+
+    return () => {
+      clearTimeout(handler)
+    }
+  }, [value, delay])
+
+  return debouncedValue
+}
 
 const CatalogPage = ({ tg }) => {
   const [searchParams] = useSearchParams()
@@ -14,6 +31,16 @@ const CatalogPage = ({ tg }) => {
   const [showSubCategories, setShowSubCategories] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const [sortBy, setSortBy] = useState('') // '', 'price_asc', 'price_desc'
+  const [showFilters, setShowFilters] = useState(false)
+  const [filters, setFilters] = useState({
+    minPrice: '',
+    maxPrice: '',
+    inStock: false,
+    badge: '' // '', 'NEW', 'ХИТ', 'СКИДКА'
+  })
+
+  // Debounce поиска
+  const debouncedSearch = useDebounce(searchQuery, 300)
 
   const mainCategories = [
     {
@@ -50,15 +77,19 @@ const CatalogPage = ({ tg }) => {
     if (selectedCategory) {
       loadData()
     }
-  }, [selectedCategory, searchQuery, sortBy])
+  }, [selectedCategory, debouncedSearch, sortBy, filters])
 
   const loadData = async () => {
     setLoading(true)
     try {
       const params = { 
         category: selectedCategory,
-        search: searchQuery || undefined,
-        sort_by: sortBy || undefined
+        search: debouncedSearch || undefined,
+        sort_by: sortBy || undefined,
+        min_price: filters.minPrice || undefined,
+        max_price: filters.maxPrice || undefined,
+        in_stock: filters.inStock || undefined,
+        badge: filters.badge || undefined
       }
       const [productsRes, favoritesRes] = await Promise.all([
         api.getProducts(params),

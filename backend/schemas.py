@@ -141,3 +141,35 @@ class Favorite(BaseModel):
     
     class Config:
         from_attributes = True
+
+
+class SavedAddressBase(BaseModel):
+    name: str
+    delivery_type: str  # minsk, europost
+    address: Optional[str] = None
+    city: Optional[str] = None
+    europost_office: Optional[str] = None
+    is_default: bool = False
+
+
+class SavedAddressCreate(SavedAddressBase):
+    pass
+
+
+class SavedAddress(SavedAddressBase):
+    id: int
+    user_id: int
+    created_at: datetime
+    
+    class Config:
+        from_attributes = True
+
+
+class BonusInfo(BaseModel):
+    """Информация о бонусной системе пользователя"""
+    bonus_balance: float
+    total_orders_count: int
+    loyalty_level: str
+    cashback_percent: float
+    next_level_orders: Optional[int] = None
+    progress_percent: float

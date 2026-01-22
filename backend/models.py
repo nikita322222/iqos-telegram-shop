@@ -124,3 +124,22 @@ class BonusTransaction(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
     
     user = relationship("User", back_populates="bonus_transactions")
+
+
+class SavedAddress(Base):
+    __tablename__ = "saved_addresses"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    name = Column(String, nullable=False)  # "Дом", "Работа", "Дача"
+    delivery_type = Column(String, nullable=False)  # minsk, europost
+    
+    # Для доставки по Минску
+    address = Column(Text, nullable=True)
+    
+    # Для Евро почты
+    city = Column(String, nullable=True)
+    europost_office = Column(String, nullable=True)
+    
+    is_default = Column(Boolean, default=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
