@@ -327,7 +327,7 @@ body {
 
 /* Checkout Page */
 .checkout-page {
-  padding-bottom: 20px;
+  padding-bottom: 200px; /* Увеличенный отступ для футера */
 }
 
 .form-section {
@@ -448,16 +448,17 @@ body {
 
 /* Футер оформления */
 .checkout-footer {
-  position: sticky;
+  position: fixed;
   bottom: 70px;
   left: 0;
   right: 0;
-  margin: 20px -16px 0 -16px;
   padding: 16px;
   background: var(--bg-color);
   border-top: 1px solid var(--border-color);
   box-shadow: 0 -2px 10px var(--shadow-color);
   z-index: 10;
+  max-height: 40vh; /* Максимальная высота 40% экрана */
+  overflow-y: auto; /* Прокрутка если не помещается */
 }
 
 .total-section {

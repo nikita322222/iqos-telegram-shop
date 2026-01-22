@@ -395,7 +395,7 @@ def create_order(
         db.add(db_order)
         db.flush()
         
-        # Добавляем товары в заказ и уменьшаем остатки
+        # Добавляем товары в заказ (БЕЗ уменьшения остатков)
         for item_data in order_items:
             order_item = models.OrderItem(
                 order_id=db_order.id,
@@ -405,9 +405,7 @@ def create_order(
             )
             db.add(order_item)
             
-            # КРИТИЧНО: Уменьшаем остатки товара
-            product = item_data['product']
-            product.stock -= item_data['quantity']
+            # Остатки НЕ уменьшаем - товары всегда в наличии
         
         # Списываем бонусы если использованы
         if bonus_to_use > 0:
@@ -542,13 +540,9 @@ async def update_order_status(
     
     order.status = new_status
     
-    # Возвращаем товары на склад при отмене заказа
+    # НЕ возвращаем товары на склад при отмене - остатки не меняются
+    # Только возвращаем бонусы если они были использованы
     if new_status == 'cancelled' and old_status != 'cancelled':
-        for order_item in order.items:
-            product = order_item.product
-            product.stock += order_item.quantity
-        
-        # Возвращаем бонусы если они были использованы
         if order.bonus_used > 0:
             user = order.user
             user.bonus_balance += order.bonus_used

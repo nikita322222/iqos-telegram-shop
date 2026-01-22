@@ -13,6 +13,7 @@ const CheckoutPage = ({ tg }) => {
   const [savedAddresses, setSavedAddresses] = useState([])
   const [selectedAddress, setSelectedAddress] = useState(null)
   const [showAddressList, setShowAddressList] = useState(false)
+  const [hideFooter, setHideFooter] = useState(false) // Для скрытия футера при вводе
   
   // Бонусы
   const [bonusBalance, setBonusBalance] = useState(0)
@@ -374,6 +375,8 @@ const CheckoutPage = ({ tg }) => {
               placeholder="Иванов Иван Иванович"
               value={formData.full_name}
               onChange={(e) => handleInputChange('full_name', e.target.value)}
+              onFocus={() => setHideFooter(true)}
+              onBlur={() => setHideFooter(false)}
               className={`form-input ${errors.full_name ? 'error' : ''}`}
             />
             {errors.full_name && <div className="error-message">{errors.full_name}</div>}
@@ -388,6 +391,8 @@ const CheckoutPage = ({ tg }) => {
               placeholder="+375 (29) 123-45-67"
               value={formData.phone}
               onChange={(e) => handleInputChange('phone', e.target.value)}
+              onFocus={() => setHideFooter(true)}
+              onBlur={() => setHideFooter(false)}
               className={`form-input ${errors.phone ? 'error' : ''}`}
             />
             {errors.phone && <div className="error-message">{errors.phone}</div>}
@@ -408,6 +413,8 @@ const CheckoutPage = ({ tg }) => {
                 placeholder="ул. Примерная, д. 1, кв. 1"
                 value={formData.delivery_address}
                 onChange={(e) => handleInputChange('delivery_address', e.target.value)}
+                onFocus={() => setHideFooter(true)}
+                onBlur={() => setHideFooter(false)}
                 className={`form-input ${errors.delivery_address ? 'error' : ''}`}
               />
               {errors.delivery_address && <div className="error-message">{errors.delivery_address}</div>}
@@ -460,6 +467,8 @@ const CheckoutPage = ({ tg }) => {
                 placeholder="Минск"
                 value={formData.city}
                 onChange={(e) => handleInputChange('city', e.target.value)}
+                onFocus={() => setHideFooter(true)}
+                onBlur={() => setHideFooter(false)}
                 className={`form-input ${errors.city ? 'error' : ''}`}
               />
               {errors.city && <div className="error-message">{errors.city}</div>}
@@ -474,6 +483,8 @@ const CheckoutPage = ({ tg }) => {
                 placeholder="№ 123"
                 value={formData.europost_office}
                 onChange={(e) => handleInputChange('europost_office', e.target.value)}
+                onFocus={() => setHideFooter(true)}
+                onBlur={() => setHideFooter(false)}
                 className={`form-input ${errors.europost_office ? 'error' : ''}`}
               />
               {errors.europost_office && <div className="error-message">{errors.europost_office}</div>}
@@ -526,6 +537,8 @@ const CheckoutPage = ({ tg }) => {
               placeholder="Дополнительная информация к заказу (необязательно)"
               value={formData.comment}
               onChange={(e) => handleInputChange('comment', e.target.value)}
+              onFocus={() => setHideFooter(true)}
+              onBlur={() => setHideFooter(false)}
               className="form-input form-textarea"
               rows="3"
             />
@@ -573,6 +586,8 @@ const CheckoutPage = ({ tg }) => {
                       const maxBonus = Math.min(bonusBalance, getTotalPrice() * 0.2)
                       setBonusToUse(Math.min(value, maxBonus))
                     }}
+                    onFocus={() => setHideFooter(true)}
+                    onBlur={() => setHideFooter(false)}
                     className="form-input"
                   />
                   <div className="bonus-hint">
@@ -585,7 +600,7 @@ const CheckoutPage = ({ tg }) => {
         )}
 
         {/* Итого */}
-        <div className="checkout-footer">
+        <div className="checkout-footer" style={{ display: hideFooter ? 'none' : 'block' }}>
           <div className="total-section">
             <div className="total-row">
               <span className="total-label">Сумма товаров:</span>
@@ -634,5 +649,3 @@ const CheckoutPage = ({ tg }) => {
     </div>
   )
 }
-
-export default CheckoutPage
