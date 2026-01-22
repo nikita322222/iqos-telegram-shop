@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { api } from '../api/client'
 import ProductCard from '../components/ProductCard'
+import SkeletonLoader from '../components/SkeletonLoader'
 
 // Debounce функция
 const useDebounce = (value, delay) => {
@@ -295,7 +296,36 @@ const CatalogPage = ({ tg }) => {
 
   // Показываем товары
   if (loading) {
-    return <div className="loading">Загрузка...</div>
+    return (
+      <div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px' }}>
+          <button
+            onClick={handleBackToSub}
+            style={{
+              background: 'var(--secondary-bg-color)',
+              border: 'none',
+              borderRadius: '12px',
+              padding: '12px 16px',
+              fontSize: '18px',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '4px',
+              color: 'var(--text-color)'
+            }}
+          >
+            ← Назад
+          </button>
+          <h1 className="page-title" style={{ margin: 0, fontSize: '20px' }}>{selectedCategory}</h1>
+        </div>
+        
+        <div className="product-grid">
+          {[1, 2, 3, 4].map(i => (
+            <SkeletonLoader key={i} type="product" />
+          ))}
+        </div>
+      </div>
+    )
   }
 
   return (

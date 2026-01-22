@@ -1,7 +1,12 @@
 import { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { api } from '../api/client'
+import { useCart } from '../context/CartContext'
+import SkeletonLoader from '../components/SkeletonLoader'
 
 const ProfilePage = ({ tg }) => {
+  const navigate = useNavigate()
+  const { addToCart } = useCart()
   const [user, setUser] = useState(null)
   const [orders, setOrders] = useState([])
   const [savedAddresses, setSavedAddresses] = useState([])
@@ -37,6 +42,21 @@ const ProfilePage = ({ tg }) => {
     } finally {
       setLoading(false)
     }
+  }
+
+  const handleReorder = (order) => {
+    // Добавляем все товары из заказа в корзину
+    order.items.forEach(item => {
+      addToCart(item.product, item.quantity)
+    })
+    
+    if (tg) {
+      tg.showAlert(`✅ Добавлено ${order.items.length} товаров в корзину!`)
+      tg.HapticFeedback.notificationOccurred('success')
+    }
+    
+    // Переходим в корзину
+    navigate('/cart')
   }
 
   const handleSaveAddress = async () => {
@@ -120,7 +140,26 @@ const ProfilePage = ({ tg }) => {
   }
 
   if (loading) {
-    return <div className="loading">Загрузка...</div>
+    return (
+      <div>
+        <h1 className="page-title">Профиль</h1>
+        <div style={{
+          background: 'var(--secondary-bg-color)',
+          padding: '16px',
+          borderRadius: '12px',
+          marginBottom: '20px',
+          animation: 'pulse 1.5s ease-in-out infinite'
+        }}>
+          <div style={{ height: '24px', background: 'var(--bg-color)', borderRadius: '4px', marginBottom: '8px', width: '60%' }} />
+          <div style={{ height: '16px', background: 'var(--bg-color)', borderRadius: '4px', width: '40%' }} />
+        </div>
+        
+        <h2 className="section-title">Мои заказы</h2>
+        {[1, 2, 3].map(i => (
+          <SkeletonLoader key={i} type="order" />
+        ))}
+      </div>
+    )
   }
 
   return (
@@ -441,6 +480,29 @@ const ProfilePage = ({ tg }) => {
                   ))}
                 </div>
               )}
+              
+              {/* Кнопка повторить заказ */}
+              <button
+                onClick={() => handleReorder(order)}
+                style={{
+                  width: '100%',
+                  marginTop: '12px',
+                  padding: '10px',
+                  borderRadius: '8px',
+                  border: '1px solid var(--button-color)',
+                  background: 'transparent',
+                  color: 'var(--button-color)',
+                  fontSize: '14px',
+                  fontWeight: '600',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '6px'
+                }}
+              >
+                🔄 Повторить заказ
+              </button>
             </div>
           ))}
         </div>

@@ -44,6 +44,65 @@ const CartPage = ({ tg }) => {
     <div>
       <h1 className="page-title">Корзина</h1>
       
+      {/* Прогресс-бар до бесплатной доставки */}
+      {getTotalPrice() < 300 && getTotalPrice() > 0 && (
+        <div style={{
+          background: 'var(--secondary-bg-color)',
+          padding: '16px',
+          borderRadius: '12px',
+          marginBottom: '16px'
+        }}>
+          <div style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            marginBottom: '8px',
+            fontSize: '14px'
+          }}>
+            <span>До бесплатной доставки:</span>
+            <span style={{ fontWeight: '600', color: 'var(--button-color)' }}>
+              {(300 - getTotalPrice()).toFixed(2)} BYN
+            </span>
+          </div>
+          <div style={{
+            width: '100%',
+            height: '8px',
+            background: 'var(--border-color)',
+            borderRadius: '4px',
+            overflow: 'hidden'
+          }}>
+            <div style={{
+              width: `${Math.min((getTotalPrice() / 300) * 100, 100)}%`,
+              height: '100%',
+              background: 'linear-gradient(90deg, #4CAF50, #8BC34A)',
+              transition: 'width 0.3s ease',
+              borderRadius: '4px'
+            }} />
+          </div>
+          <div style={{
+            fontSize: '12px',
+            color: 'var(--hint-color)',
+            marginTop: '8px',
+            textAlign: 'center'
+          }}>
+            🚚 Добавьте товаров еще на {(300 - getTotalPrice()).toFixed(2)} BYN для бесплатной доставки
+          </div>
+        </div>
+      )}
+      
+      {getTotalPrice() >= 300 && (
+        <div style={{
+          background: 'linear-gradient(135deg, #4CAF50, #8BC34A)',
+          padding: '16px',
+          borderRadius: '12px',
+          marginBottom: '16px',
+          color: 'white',
+          textAlign: 'center',
+          fontWeight: '600'
+        }}>
+          🎉 Поздравляем! Вы получили бесплатную доставку!
+        </div>
+      )}
+      
       <div style={{ marginBottom: '20px' }}>
         {cart.map(item => (
           <div key={item.id} className="cart-item">
