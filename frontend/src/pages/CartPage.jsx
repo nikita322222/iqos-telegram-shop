@@ -1,13 +1,28 @@
 import { useNavigate } from 'react-router-dom'
 import { useCart } from '../context/CartContext'
 
-const CartPage = () => {
+const CartPage = ({ tg }) => {
   const navigate = useNavigate()
   const { cart, updateQuantity, removeFromCart, getTotalPrice } = useCart()
 
   const handleCheckout = () => {
     if (cart.length === 0) return
     navigate('/checkout')
+  }
+
+  const handleRemoveItem = (item) => {
+    if (tg) {
+      tg.showConfirm(`Удалить ${item.name} из корзины?`, (confirmed) => {
+        if (confirmed) {
+          removeFromCart(item.id)
+          tg.HapticFeedback.notificationOccurred('success')
+        }
+      })
+    } else {
+      if (confirm(`Удалить ${item.name} из корзины?`)) {
+        removeFromCart(item.id)
+      }
+    }
   }
 
   if (cart.length === 0) {
@@ -61,7 +76,7 @@ const CartPage = () => {
                   +
                 </button>
                 <button
-                  onClick={() => removeFromCart(item.id)}
+                  onClick={() => handleRemoveItem(item)}
                   style={{
                     marginLeft: 'auto',
                     background: 'none',

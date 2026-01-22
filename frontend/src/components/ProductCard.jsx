@@ -1,15 +1,26 @@
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useCart } from '../context/CartContext'
 
 const ProductCard = ({ product, onFavoriteToggle, isFavorite }) => {
   const { addToCart } = useCart()
   const navigate = useNavigate()
+  const [isAdding, setIsAdding] = useState(false)
 
-  const handleAddToCart = (e) => {
+  const handleAddToCart = async (e) => {
     e.stopPropagation()
-    addToCart(product)
-    if (window.Telegram?.WebApp) {
-      window.Telegram.WebApp.HapticFeedback.notificationOccurred('success')
+    setIsAdding(true)
+    
+    try {
+      addToCart(product)
+      if (window.Telegram?.WebApp) {
+        window.Telegram.WebApp.HapticFeedback.notificationOccurred('success')
+      }
+      
+      // Небольшая задержка для визуального эффекта
+      await new Promise(resolve => setTimeout(resolve, 300))
+    } finally {
+      setIsAdding(false)
     }
   }
 
@@ -35,10 +46,15 @@ const ProductCard = ({ product, onFavoriteToggle, isFavorite }) => {
         <div style={{ display: 'flex', gap: '8px' }}>
           <button
             onClick={handleAddToCart}
+            disabled={isAdding || product.stock === 0}
             className="btn btn-primary"
-            style={{ flex: 1, padding: '8px' }}
+            style={{ 
+              flex: 1, 
+              padding: '8px',
+              opacity: isAdding || product.stock === 0 ? 0.6 : 1
+            }}
           >
-            В корзину
+            {isAdding ? '⏳' : product.stock === 0 ? 'Нет в наличии' : 'В корзину'}
           </button>
           
           {onFavoriteToggle && (

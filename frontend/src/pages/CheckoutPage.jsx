@@ -10,6 +10,9 @@ const CheckoutPage = ({ tg }) => {
   const [isLoading, setIsLoading] = useState(true)
   const [deliveryType, setDeliveryType] = useState('minsk')
   const [errors, setErrors] = useState({})
+  const [savedAddresses, setSavedAddresses] = useState([])
+  const [selectedAddress, setSelectedAddress] = useState(null)
+  const [showAddressList, setShowAddressList] = useState(false)
   
   // Бонусы
   const [bonusBalance, setBonusBalance] = useState(0)
@@ -28,12 +31,17 @@ const CheckoutPage = ({ tg }) => {
     comment: ''
   })
 
-  // Загрузка сохраненных данных пользователя и бонусов
+  // Загрузка сохраненных данных пользователя, бонусов и адресов
   useEffect(() => {
     const loadUserData = async () => {
       try {
-        const response = await api.getCurrentUser()
-        const userData = response.data
+        const [userResponse, addressesResponse] = await Promise.all([
+          api.getCurrentUser(),
+          api.getSavedAddresses().catch(() => ({ data: [] }))
+        ])
+        
+        const userData = userResponse.data
+        setSavedAddresses(addressesResponse.data)
         
         // Загружаем баланс бонусов
         setBonusBalance(userData.bonus_balance || 0)
@@ -54,6 +62,12 @@ const CheckoutPage = ({ tg }) => {
             setDeliveryType(userData.saved_delivery_type)
           }
         }
+        
+        // Если есть адрес по умолчанию, используем его
+        const defaultAddress = addressesResponse.data.find(addr => addr.is_default)
+        if (defaultAddress) {
+          applyAddress(defaultAddress)
+        }
       } catch (error) {
         console.error('Ошибка загрузки данных пользователя:', error)
       } finally {
@@ -63,6 +77,29 @@ const CheckoutPage = ({ tg }) => {
     
     loadUserData()
   }, [])
+
+  const applyAddress = (address) => {
+    setSelectedAddress(address)
+    setDeliveryType(address.delivery_type)
+    
+    if (address.delivery_type === 'minsk') {
+      setFormData(prev => ({
+        ...prev,
+        delivery_address: address.address || '',
+        city: '',
+        europost_office: ''
+      }))
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        delivery_address: '',
+        city: address.city || '',
+        europost_office: address.europost_office || ''
+      }))
+    }
+    
+    setShowAddressList(false)
+  }
 
   const validateForm = () => {
     const newErrors = {}
@@ -221,10 +258,89 @@ const CheckoutPage = ({ tg }) => {
       {/* Выбор типа доставки */}
       <div className="form-section">
         <h3 className="section-subtitle">Тип доставки</h3>
+        
+        {/* Кнопка выбора сохраненного адреса */}
+        {savedAddresses.length > 0 && (
+          <button
+            type="button"
+            onClick={() => setShowAddressList(!showAddressList)}
+            style={{
+              width: '100%',
+              padding: '12px',
+              marginBottom: '12px',
+              borderRadius: '12px',
+              border: '1px solid var(--border-color)',
+              background: 'var(--secondary-bg-color)',
+              color: 'var(--text-color)',
+              fontSize: '15px',
+              fontWeight: '600',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between'
+            }}
+          >
+            <span>📍 {selectedAddress ? selectedAddress.name : 'Выбрать сохраненный адрес'}</span>
+            <span>{showAddressList ? '▲' : '▼'}</span>
+          </button>
+        )}
+
+        {/* Список сохраненных адресов */}
+        {showAddressList && savedAddresses.length > 0 && (
+          <div style={{
+            marginBottom: '12px',
+            background: 'var(--secondary-bg-color)',
+            borderRadius: '12px',
+            padding: '8px'
+          }}>
+            {savedAddresses.map(address => (
+              <div
+                key={address.id}
+                onClick={() => applyAddress(address)}
+                style={{
+                  padding: '12px',
+                  marginBottom: '8px',
+                  borderRadius: '8px',
+                  background: selectedAddress?.id === address.id ? 'var(--button-color)' : 'var(--bg-color)',
+                  color: selectedAddress?.id === address.id ? 'white' : 'var(--text-color)',
+                  cursor: 'pointer',
+                  border: address.is_default ? '2px solid var(--button-color)' : 'none'
+                }}
+              >
+                <div style={{ fontWeight: '600', marginBottom: '4px' }}>
+                  {address.name}
+                  {address.is_default && (
+                    <span style={{
+                      marginLeft: '8px',
+                      fontSize: '11px',
+                      padding: '2px 6px',
+                      borderRadius: '8px',
+                      background: selectedAddress?.id === address.id ? 'rgba(255,255,255,0.3)' : 'var(--button-color)',
+                      color: 'white'
+                    }}>
+                      По умолчанию
+                    </span>
+                  )}
+                </div>
+                <div style={{ fontSize: '13px', opacity: 0.9 }}>
+                  {address.delivery_type === 'minsk' ? (
+                    <>🚚 {address.address}</>
+                  ) : (
+                    <>📦 {address.city}, отделение {address.europost_office}</>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
         <div className="delivery-type-selector">
           <button
             type="button"
-            onClick={() => setDeliveryType('minsk')}
+            onClick={() => {
+              setDeliveryType('minsk')
+              setSelectedAddress(null)
+            }}
             className={`delivery-type-btn ${deliveryType === 'minsk' ? 'active' : ''}`}
           >
             <span className="btn-icon">🚚</span>
@@ -232,7 +348,10 @@ const CheckoutPage = ({ tg }) => {
           </button>
           <button
             type="button"
-            onClick={() => setDeliveryType('europost')}
+            onClick={() => {
+              setDeliveryType('europost')
+              setSelectedAddress(null)
+            }}
             className={`delivery-type-btn ${deliveryType === 'europost' ? 'active' : ''}`}
           >
             <span className="btn-icon">📦</span>

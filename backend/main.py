@@ -542,6 +542,27 @@ async def update_order_status(
     
     order.status = new_status
     
+    # Возвращаем товары на склад при отмене заказа
+    if new_status == 'cancelled' and old_status != 'cancelled':
+        for order_item in order.items:
+            product = order_item.product
+            product.stock += order_item.quantity
+        
+        # Возвращаем бонусы если они были использованы
+        if order.bonus_used > 0:
+            user = order.user
+            user.bonus_balance += order.bonus_used
+            
+            # Создаем транзакцию возврата
+            bonus_transaction = models.BonusTransaction(
+                user_id=user.id,
+                amount=order.bonus_used,
+                transaction_type="refund",
+                description=f"Возврат бонусов за отмененный заказ #{order.id}",
+                order_id=order.id
+            )
+            db.add(bonus_transaction)
+    
     # Начисляем бонусы при подтверждении заказа
     if old_status == 'pending' and new_status == 'confirmed':
         user = order.user
@@ -606,8 +627,10 @@ async def update_order_status(
             message = (
                 f"❌ <b>Ваш заказ #{order.id} отменен</b>\n\n"
                 f"К сожалению, мы не смогли выполнить ваш заказ.\n"
-                f"Если у вас есть вопросы, обратитесь к менеджеру @Heets_manager"
             )
+            if order.bonus_used > 0:
+                message += f"💰 Бонусы возвращены: +{order.bonus_used} BYN\n"
+            message += f"\nЕсли у вас есть вопросы, обратитесь к менеджеру @Heets_manager"
         else:
             message = None
         
