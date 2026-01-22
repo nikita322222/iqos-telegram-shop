@@ -410,14 +410,14 @@ const CheckoutPage = ({ tg }) => {
                   onChange={(e) => {
                     setUseBonuses(e.target.checked)
                     if (e.target.checked) {
-                      const maxBonus = Math.min(bonusBalance, getTotalPrice() * 0.3)
+                      const maxBonus = Math.min(bonusBalance, getTotalPrice() * 0.2)
                       setBonusToUse(maxBonus)
                     } else {
                       setBonusToUse(0)
                     }
                   }}
                 />
-                <span>Использовать бонусы для оплаты (до 30%)</span>
+                <span>Использовать бонусы для оплаты (до 20%)</span>
               </label>
 
               {useBonuses && (
@@ -426,18 +426,18 @@ const CheckoutPage = ({ tg }) => {
                   <input
                     type="number"
                     min="0"
-                    max={Math.min(bonusBalance, getTotalPrice() * 0.3)}
+                    max={Math.min(bonusBalance, getTotalPrice() * 0.2)}
                     step="0.01"
                     value={bonusToUse}
                     onChange={(e) => {
                       const value = parseFloat(e.target.value) || 0
-                      const maxBonus = Math.min(bonusBalance, getTotalPrice() * 0.3)
+                      const maxBonus = Math.min(bonusBalance, getTotalPrice() * 0.2)
                       setBonusToUse(Math.min(value, maxBonus))
                     }}
                     className="form-input"
                   />
                   <div className="bonus-hint">
-                    Максимум 30% от суммы заказа: {Math.min(bonusBalance, getTotalPrice() * 0.3).toFixed(2)} BYN
+                    Максимум 20% от суммы заказа: {Math.min(bonusBalance, getTotalPrice() * 0.2).toFixed(2)} BYN
                   </div>
                 </div>
               )}

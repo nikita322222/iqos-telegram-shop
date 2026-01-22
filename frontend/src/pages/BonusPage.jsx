@@ -172,7 +172,7 @@ function BonusPage() {
           <div className="info-content">
             <div className="info-title">Получайте бонусы</div>
             <div className="info-text">
-              За каждый подтвержденный заказ вы получаете бонусы в размере от 1.5% до 5% от суммы заказа
+              За каждый подтвержденный заказ вы получаете бонусы в размере от 0.8% до 2% от суммы заказа
             </div>
           </div>
         </div>
@@ -182,7 +182,7 @@ function BonusPage() {
           <div className="info-content">
             <div className="info-title">Оплачивайте бонусами</div>
             <div className="info-text">
-              Используйте накопленные бонусы для оплаты следующих заказов. Можно оплатить до 30% от суммы заказа. 1 бонус = 1 белорусский рубль
+              Используйте накопленные бонусы для оплаты следующих заказов. Можно оплатить до 20% от суммы заказа. 1 бонус = 1 белорусский рубль
             </div>
           </div>
         </div>
@@ -206,7 +206,7 @@ function BonusPage() {
           <div className="level-item-icon">🥉</div>
           <div className="level-item-info">
             <div className="level-item-name">Bronze</div>
-            <div className="level-item-desc">0-5 заказов • Кэшбэк 1.5%</div>
+            <div className="level-item-desc">0-5 заказов • Кэшбэк 0.8%</div>
           </div>
         </div>
 
@@ -214,7 +214,7 @@ function BonusPage() {
           <div className="level-item-icon">🥈</div>
           <div className="level-item-info">
             <div className="level-item-name">Silver</div>
-            <div className="level-item-desc">6-15 заказов • Кэшбэк 3%</div>
+            <div className="level-item-desc">6-15 заказов • Кэшбэк 1.5%</div>
           </div>
         </div>
 
@@ -222,7 +222,7 @@ function BonusPage() {
           <div className="level-item-icon">🥇</div>
           <div className="level-item-info">
             <div className="level-item-name">Gold</div>
-            <div className="level-item-desc">16+ заказов • Кэшбэк 5%</div>
+            <div className="level-item-desc">16+ заказов • Кэшбэк 2%</div>
           </div>
         </div>
       </div>
