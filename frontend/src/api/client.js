@@ -37,6 +37,12 @@ export const api = {
   // Bonus
   getBonusInfo: () => apiClient.get('/api/bonus/info'),
   getBonusTransactions: (limit = 20) => apiClient.get('/api/bonus/transactions', { params: { limit } }),
+  
+  // Saved Addresses
+  getSavedAddresses: () => apiClient.get('/api/saved-addresses'),
+  createSavedAddress: (data) => apiClient.post('/api/saved-addresses', data),
+  updateSavedAddress: (id, data) => apiClient.put(`/api/saved-addresses/${id}`, data),
+  deleteSavedAddress: (id) => apiClient.delete(`/api/saved-addresses/${id}`),
 }
 
 export default apiClient

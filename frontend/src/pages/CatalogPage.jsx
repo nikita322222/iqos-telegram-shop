@@ -341,57 +341,179 @@ const CatalogPage = ({ tg }) => {
           }}
         />
 
-        {/* Сортировка */}
-        <div style={{ display: 'flex', gap: '8px', overflowX: 'auto' }}>
+        {/* Сортировка и фильтры */}
+        <div style={{ display: 'flex', gap: '8px', marginBottom: '12px' }}>
           <button
-            onClick={() => setSortBy('')}
+            onClick={() => setShowFilters(!showFilters)}
             style={{
               padding: '8px 16px',
               borderRadius: '20px',
-              border: sortBy === '' ? '2px solid var(--button-color)' : '1px solid var(--border-color)',
-              background: sortBy === '' ? 'var(--button-color)' : 'var(--secondary-bg-color)',
-              color: sortBy === '' ? 'white' : 'var(--text-color)',
+              border: showFilters ? '2px solid var(--button-color)' : '1px solid var(--border-color)',
+              background: showFilters ? 'var(--button-color)' : 'var(--secondary-bg-color)',
+              color: showFilters ? 'white' : 'var(--text-color)',
               fontSize: '14px',
               fontWeight: '600',
               cursor: 'pointer',
               whiteSpace: 'nowrap'
             }}
           >
-            По умолчанию
+            🔧 Фильтры
           </button>
-          <button
-            onClick={() => setSortBy('price_asc')}
-            style={{
-              padding: '8px 16px',
-              borderRadius: '20px',
-              border: sortBy === 'price_asc' ? '2px solid var(--button-color)' : '1px solid var(--border-color)',
-              background: sortBy === 'price_asc' ? 'var(--button-color)' : 'var(--secondary-bg-color)',
-              color: sortBy === 'price_asc' ? 'white' : 'var(--text-color)',
-              fontSize: '14px',
-              fontWeight: '600',
-              cursor: 'pointer',
-              whiteSpace: 'nowrap'
-            }}
-          >
-            Цена ↑
-          </button>
-          <button
-            onClick={() => setSortBy('price_desc')}
-            style={{
-              padding: '8px 16px',
-              borderRadius: '20px',
-              border: sortBy === 'price_desc' ? '2px solid var(--button-color)' : '1px solid var(--border-color)',
-              background: sortBy === 'price_desc' ? 'var(--button-color)' : 'var(--secondary-bg-color)',
-              color: sortBy === 'price_desc' ? 'white' : 'var(--text-color)',
-              fontSize: '14px',
-              fontWeight: '600',
-              cursor: 'pointer',
-              whiteSpace: 'nowrap'
-            }}
-          >
-            Цена ↓
-          </button>
+          <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', flex: 1 }}>
+            <button
+              onClick={() => setSortBy('')}
+              style={{
+                padding: '8px 16px',
+                borderRadius: '20px',
+                border: sortBy === '' ? '2px solid var(--button-color)' : '1px solid var(--border-color)',
+                background: sortBy === '' ? 'var(--button-color)' : 'var(--secondary-bg-color)',
+                color: sortBy === '' ? 'white' : 'var(--text-color)',
+                fontSize: '14px',
+                fontWeight: '600',
+                cursor: 'pointer',
+                whiteSpace: 'nowrap'
+              }}
+            >
+              По умолчанию
+            </button>
+            <button
+              onClick={() => setSortBy('price_asc')}
+              style={{
+                padding: '8px 16px',
+                borderRadius: '20px',
+                border: sortBy === 'price_asc' ? '2px solid var(--button-color)' : '1px solid var(--border-color)',
+                background: sortBy === 'price_asc' ? 'var(--button-color)' : 'var(--secondary-bg-color)',
+                color: sortBy === 'price_asc' ? 'white' : 'var(--text-color)',
+                fontSize: '14px',
+                fontWeight: '600',
+                cursor: 'pointer',
+                whiteSpace: 'nowrap'
+              }}
+            >
+              Цена ↑
+            </button>
+            <button
+              onClick={() => setSortBy('price_desc')}
+              style={{
+                padding: '8px 16px',
+                borderRadius: '20px',
+                border: sortBy === 'price_desc' ? '2px solid var(--button-color)' : '1px solid var(--border-color)',
+                background: sortBy === 'price_desc' ? 'var(--button-color)' : 'var(--secondary-bg-color)',
+                color: sortBy === 'price_desc' ? 'white' : 'var(--text-color)',
+                fontSize: '14px',
+                fontWeight: '600',
+                cursor: 'pointer',
+                whiteSpace: 'nowrap'
+              }}
+            >
+              Цена ↓
+            </button>
+          </div>
         </div>
+
+        {/* Панель фильтров */}
+        {showFilters && (
+          <div style={{
+            background: 'var(--secondary-bg-color)',
+            borderRadius: '12px',
+            padding: '16px',
+            marginBottom: '12px'
+          }}>
+            <div style={{ marginBottom: '12px' }}>
+              <label style={{ fontSize: '14px', fontWeight: '600', marginBottom: '8px', display: 'block' }}>
+                Цена (BYN)
+              </label>
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <input
+                  type="number"
+                  placeholder="От"
+                  value={filters.minPrice}
+                  onChange={(e) => setFilters({ ...filters, minPrice: e.target.value })}
+                  style={{
+                    flex: 1,
+                    padding: '8px 12px',
+                    borderRadius: '8px',
+                    border: '1px solid var(--border-color)',
+                    background: 'var(--bg-color)',
+                    color: 'var(--text-color)',
+                    fontSize: '14px'
+                  }}
+                />
+                <input
+                  type="number"
+                  placeholder="До"
+                  value={filters.maxPrice}
+                  onChange={(e) => setFilters({ ...filters, maxPrice: e.target.value })}
+                  style={{
+                    flex: 1,
+                    padding: '8px 12px',
+                    borderRadius: '8px',
+                    border: '1px solid var(--border-color)',
+                    background: 'var(--bg-color)',
+                    color: 'var(--text-color)',
+                    fontSize: '14px'
+                  }}
+                />
+              </div>
+            </div>
+
+            <div style={{ marginBottom: '12px' }}>
+              <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
+                <input
+                  type="checkbox"
+                  checked={filters.inStock}
+                  onChange={(e) => setFilters({ ...filters, inStock: e.target.checked })}
+                  style={{ width: '18px', height: '18px', cursor: 'pointer' }}
+                />
+                <span style={{ fontSize: '14px', fontWeight: '600' }}>Только в наличии</span>
+              </label>
+            </div>
+
+            <div>
+              <label style={{ fontSize: '14px', fontWeight: '600', marginBottom: '8px', display: 'block' }}>
+                Метки
+              </label>
+              <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                {['', 'NEW', 'ХИТ', 'СКИДКА'].map(badge => (
+                  <button
+                    key={badge}
+                    onClick={() => setFilters({ ...filters, badge: badge })}
+                    style={{
+                      padding: '6px 12px',
+                      borderRadius: '16px',
+                      border: filters.badge === badge ? '2px solid var(--button-color)' : '1px solid var(--border-color)',
+                      background: filters.badge === badge ? 'var(--button-color)' : 'var(--bg-color)',
+                      color: filters.badge === badge ? 'white' : 'var(--text-color)',
+                      fontSize: '13px',
+                      fontWeight: '600',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    {badge || 'Все'}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <button
+              onClick={() => setFilters({ minPrice: '', maxPrice: '', inStock: false, badge: '' })}
+              style={{
+                width: '100%',
+                marginTop: '12px',
+                padding: '8px',
+                borderRadius: '8px',
+                border: 'none',
+                background: 'var(--hint-color)',
+                color: 'white',
+                fontSize: '14px',
+                fontWeight: '600',
+                cursor: 'pointer'
+              }}
+            >
+              Сбросить фильтры
+            </button>
+          </div>
+        )}
       </div>
 
       {products.length === 0 ? (
