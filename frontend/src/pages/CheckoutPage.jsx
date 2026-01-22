@@ -649,3 +649,6 @@ const CheckoutPage = ({ tg }) => {
     </div>
   )
 }
+
+
+export default CheckoutPage
