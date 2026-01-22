@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { api } from '../api/client'
 import ProductCard from '../components/ProductCard'
 
 const CatalogPage = ({ tg }) => {
+  const [searchParams] = useSearchParams()
   const [products, setProducts] = useState([])
   const [loading, setLoading] = useState(true)
   const [favorites, setFavorites] = useState(new Set())
@@ -10,6 +12,8 @@ const CatalogPage = ({ tg }) => {
   const [selectedMainCategory, setSelectedMainCategory] = useState(null)
   const [showCategories, setShowCategories] = useState(true)
   const [showSubCategories, setShowSubCategories] = useState(false)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [sortBy, setSortBy] = useState('') // '', 'price_asc', 'price_desc'
 
   const mainCategories = [
     {
@@ -24,16 +28,38 @@ const CatalogPage = ({ tg }) => {
     }
   ]
 
+  // Check for category parameter in URL on mount
+  useEffect(() => {
+    const categoryParam = searchParams.get('category')
+    if (categoryParam) {
+      // Find which main category contains this subcategory
+      const mainCat = mainCategories.find(mc => 
+        mc.subCategories.includes(categoryParam)
+      )
+      
+      if (mainCat) {
+        setSelectedMainCategory(mainCat)
+        setSelectedCategory(categoryParam)
+        setShowCategories(false)
+        setShowSubCategories(false)
+      }
+    }
+  }, [])
+
   useEffect(() => {
     if (selectedCategory) {
       loadData()
     }
-  }, [selectedCategory])
+  }, [selectedCategory, searchQuery, sortBy])
 
   const loadData = async () => {
     setLoading(true)
     try {
-      const params = { category: selectedCategory }
+      const params = { 
+        category: selectedCategory,
+        search: searchQuery || undefined,
+        sort_by: sortBy || undefined
+      }
       const [productsRes, favoritesRes] = await Promise.all([
         api.getProducts(params),
         api.getFavorites().catch(() => ({ data: [] }))
@@ -264,12 +290,85 @@ const CatalogPage = ({ tg }) => {
         <h1 className="page-title" style={{ margin: 0, fontSize: '20px' }}>{selectedCategory}</h1>
       </div>
 
+      {/* Поиск и сортировка */}
+      <div style={{ marginBottom: '16px' }}>
+        {/* Поиск */}
+        <input
+          type="text"
+          placeholder="🔍 Поиск товаров..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          style={{
+            width: '100%',
+            padding: '12px 16px',
+            borderRadius: '12px',
+            border: '1px solid var(--border-color)',
+            background: 'var(--bg-color)',
+            color: 'var(--text-color)',
+            fontSize: '15px',
+            marginBottom: '12px'
+          }}
+        />
+
+        {/* Сортировка */}
+        <div style={{ display: 'flex', gap: '8px', overflowX: 'auto' }}>
+          <button
+            onClick={() => setSortBy('')}
+            style={{
+              padding: '8px 16px',
+              borderRadius: '20px',
+              border: sortBy === '' ? '2px solid var(--button-color)' : '1px solid var(--border-color)',
+              background: sortBy === '' ? 'var(--button-color)' : 'var(--secondary-bg-color)',
+              color: sortBy === '' ? 'white' : 'var(--text-color)',
+              fontSize: '14px',
+              fontWeight: '600',
+              cursor: 'pointer',
+              whiteSpace: 'nowrap'
+            }}
+          >
+            По умолчанию
+          </button>
+          <button
+            onClick={() => setSortBy('price_asc')}
+            style={{
+              padding: '8px 16px',
+              borderRadius: '20px',
+              border: sortBy === 'price_asc' ? '2px solid var(--button-color)' : '1px solid var(--border-color)',
+              background: sortBy === 'price_asc' ? 'var(--button-color)' : 'var(--secondary-bg-color)',
+              color: sortBy === 'price_asc' ? 'white' : 'var(--text-color)',
+              fontSize: '14px',
+              fontWeight: '600',
+              cursor: 'pointer',
+              whiteSpace: 'nowrap'
+            }}
+          >
+            Цена ↑
+          </button>
+          <button
+            onClick={() => setSortBy('price_desc')}
+            style={{
+              padding: '8px 16px',
+              borderRadius: '20px',
+              border: sortBy === 'price_desc' ? '2px solid var(--button-color)' : '1px solid var(--border-color)',
+              background: sortBy === 'price_desc' ? 'var(--button-color)' : 'var(--secondary-bg-color)',
+              color: sortBy === 'price_desc' ? 'white' : 'var(--text-color)',
+              fontSize: '14px',
+              fontWeight: '600',
+              cursor: 'pointer',
+              whiteSpace: 'nowrap'
+            }}
+          >
+            Цена ↓
+          </button>
+        </div>
+      </div>
+
       {products.length === 0 ? (
         <div className="empty-state">
           <div className="empty-icon">📦</div>
           <p>Товары не найдены</p>
           <p style={{ fontSize: '14px', marginTop: '8px', color: 'var(--hint-color)' }}>
-            В этой категории пока нет товаров
+            {searchQuery ? 'Попробуйте изменить запрос' : 'В этой категории пока нет товаров'}
           </p>
         </div>
       ) : (

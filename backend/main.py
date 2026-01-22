@@ -211,13 +211,29 @@ def get_products(
     skip: int = 0,
     limit: int = 100,
     category: str = None,
+    search: str = None,
+    sort_by: str = None,  # "price_asc" или "price_desc"
     db: Session = Depends(get_db)
 ):
-    """Получение списка товаров (авторизация опциональна)"""
+    """Получение списка товаров с поиском и сортировкой"""
     query = db.query(models.Product).filter(models.Product.is_active == True)
     
     if category:
         query = query.filter(models.Product.category == category)
+    
+    if search:
+        # Поиск по названию (регистронезависимый)
+        search_pattern = f"%{search}%"
+        query = query.filter(models.Product.name.ilike(search_pattern))
+    
+    # Сортировка
+    if sort_by == "price_asc":
+        query = query.order_by(models.Product.price.asc())
+    elif sort_by == "price_desc":
+        query = query.order_by(models.Product.price.desc())
+    else:
+        # По умолчанию сортируем по ID
+        query = query.order_by(models.Product.id)
     
     products = query.offset(skip).limit(limit).all()
     return products

@@ -321,7 +321,7 @@ const CheckoutPage = ({ tg }) => {
               />
               {errors.delivery_date && <div className="error-message">{errors.delivery_date}</div>}
               <div className="info-message">
-                ℹ️ Заказы, оформленные до 12:45, будут доставлены сегодня в выбранный промежуток времени
+                ℹ️ Заказы, оформленные до 12:45, будут доставлены сегодня в выбранный промежуток времени. Заказы, оформленные позже - на следующий день.
               </div>
             </div>
           </div>

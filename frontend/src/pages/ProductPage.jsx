@@ -78,11 +78,14 @@ const ProductPage = ({ tg }) => {
   }
 
   const handleBackClick = () => {
-    // Проверяем, есть ли история навигации
-    if (window.history.length > 1) {
+    // Если есть категория товара, возвращаемся к ней
+    if (product && product.category) {
+      navigate(`/catalog?category=${encodeURIComponent(product.category)}`)
+    } else if (window.history.length > 1) {
+      // Если истории есть, возвращаемся назад
       navigate(-1)
     } else {
-      // Если истории нет, возвращаемся в каталог
+      // Иначе возвращаемся в каталог
       navigate('/catalog')
     }
   }

@@ -195,7 +195,8 @@ body {
   border-top: 1px solid var(--border-color);
   display: flex;
   justify-content: space-around;
-  padding: 8px 0;
+  padding: 4px 0 8px 0;
+  padding-bottom: env(safe-area-inset-bottom, 8px);
   z-index: 100;
 }
 
@@ -203,13 +204,14 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
-  padding: 4px 12px;
+  gap: 2px;
+  padding: 4px 8px;
   cursor: pointer;
   color: var(--hint-color);
   text-decoration: none;
-  font-size: 12px;
+  font-size: 11px;
   transition: color 0.2s;
+  min-width: 60px;
 }
 
 .nav-item.active {
@@ -217,7 +219,7 @@ body {
 }
 
 .nav-icon {
-  font-size: 24px;
+  font-size: 22px;
 }
 
 /* Корзина */

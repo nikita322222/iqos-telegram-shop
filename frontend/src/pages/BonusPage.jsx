@@ -71,13 +71,13 @@ function BonusPage() {
       return {
         nextLevel: 'Silver',
         ordersNeeded: 6 - total_orders_count,
-        nextCashback: '3%'
+        nextCashback: '1.5%'
       };
     } else if (loyalty_level === 'silver') {
       return {
         nextLevel: 'Gold',
         ordersNeeded: 16 - total_orders_count,
-        nextCashback: '5%'
+        nextCashback: '2%'
       };
     } else {
       return null; // Максимальный уровень
