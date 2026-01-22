@@ -181,6 +181,31 @@ const ProfilePage = ({ tg }) => {
               @{user.username}
             </div>
           )}
+          
+          {/* Кнопка админ панели для админов */}
+          {user.role === 'admin' && (
+            <button
+              onClick={() => navigate('/admin')}
+              style={{
+                width: '100%',
+                marginTop: '12px',
+                padding: '12px',
+                borderRadius: '12px',
+                border: 'none',
+                background: 'linear-gradient(135deg, #007AFF 0%, #0066CC 100%)',
+                color: 'white',
+                fontSize: '16px',
+                fontWeight: '600',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '8px'
+              }}
+            >
+              👑 Админ панель
+            </button>
+          )}
         </div>
       )}
 

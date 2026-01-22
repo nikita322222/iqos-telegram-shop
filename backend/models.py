@@ -28,6 +28,9 @@ class User(Base):
     total_orders_count = Column(Integer, default=0)  # Количество завершенных заказов
     loyalty_level = Column(String, default="bronze")  # bronze, silver, gold
     
+    # Роль пользователя
+    role = Column(String, default="customer")  # customer, admin
+    
     orders = relationship("Order", back_populates="user")
     favorites = relationship("Favorite", back_populates="user")
     bonus_transactions = relationship("BonusTransaction", back_populates="user")

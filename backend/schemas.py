@@ -27,6 +27,7 @@ class User(UserBase):
     bonus_balance: float = 0.0
     total_orders_count: int = 0
     loyalty_level: str = "bronze"
+    role: str = "customer"  # customer, admin
     
     class Config:
         from_attributes = True
