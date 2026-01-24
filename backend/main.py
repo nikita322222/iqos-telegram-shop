@@ -1,6 +1,5 @@
 from fastapi import FastAPI, Depends, HTTPException, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.staticfiles import StaticFiles
 from sqlalchemy.orm import Session
 from sqlalchemy import func, String
 from typing import List
@@ -1185,29 +1184,27 @@ async def upload_image(
     file: UploadFile = File(...),
     admin: models.User = Depends(get_current_admin)
 ):
-    """Загрузка изображения товара"""
-    # Создаем папку для изображений если её нет
-    upload_dir = Path("uploads/products")
-    upload_dir.mkdir(parents=True, exist_ok=True)
+    """Загрузка изображения товара
     
-    # Генерируем уникальное имя файла
-    import uuid
-    file_extension = file.filename.split(".")[-1]
-    unique_filename = f"{uuid.uuid4()}.{file_extension}"
-    file_path = upload_dir / unique_filename
+    NOTE: На Render файловая система эфемерная, поэтому загрузка файлов не работает.
+    Используйте прямые URL изображений (например, с Imgur, Cloudinary, или вашего CDN).
     
-    # Сохраняем файл
-    with file_path.open("wb") as buffer:
-        shutil.copyfileobj(file.file, buffer)
-    
-    # Возвращаем URL изображения
-    image_url = f"/uploads/products/{unique_filename}"
-    return {"image_url": image_url}
+    Эта функция временно возвращает имя файла для тестирования.
+    """
+    # Для production нужно интегрировать Cloudinary или другой CDN
+    # Пока возвращаем заглушку
+    return {
+        "image_url": "",
+        "message": "Загрузка файлов временно недоступна. Используйте прямые URL изображений.",
+        "filename": file.filename
+    }
 
 
 # Serve uploaded images
-from fastapi.staticfiles import StaticFiles
-app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
+# NOTE: StaticFiles не работает на Render, используем внешнее хранилище (например, Cloudinary)
+# Временно отключено
+# from fastapi.staticfiles import StaticFiles
+# app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
 
 
 @app.post("/api/admin/import-products")
