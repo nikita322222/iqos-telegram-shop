@@ -1,7 +1,7 @@
 import asyncio
 import logging
 from aiogram import Bot, Dispatcher, F
-from aiogram.filters import CommandStart
+from aiogram.filters import CommandStart, Command
 from aiogram.types import Message, WebAppInfo, CallbackQuery
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 import aiohttp
@@ -16,6 +16,9 @@ dp = Dispatcher()
 
 # Хранилище обработанных заказов
 processed_orders = set()
+
+# Список админов (Telegram ID)
+ADMIN_IDS = [576978144]  # Добавьте сюда ID других админов
 
 
 async def check_user_access(telegram_id: int) -> bool:
@@ -359,6 +362,42 @@ async def handle_order_reject(callback: CallbackQuery):
     except Exception as e:
         logger.error(f"Ошибка отклонения заказа: {e}")
         await callback.answer("❌ Ошибка обработки", show_alert=True)
+
+
+@dp.message(Command("admin"))
+async def cmd_admin(message: Message):
+    """Команда /admin - открыть админ панель"""
+    telegram_id = message.from_user.id
+    
+    # Проверяем что пользователь админ
+    if telegram_id not in ADMIN_IDS:
+        await message.answer(
+            "🔒 <b>Доступ запрещен</b>\n\n"
+            "У вас нет прав администратора.",
+            parse_mode="HTML"
+        )
+        return
+    
+    # Создаем кнопку для открытия админ панели
+    builder = InlineKeyboardBuilder()
+    builder.button(
+        text="👑 Открыть админ панель",
+        web_app=WebAppInfo(url="https://admin-frontend-phi-seven.vercel.app")
+    )
+    
+    await message.answer(
+        "👑 <b>Админ панель</b>\n\n"
+        "Добро пожаловать в админ панель IQOS Shop!\n\n"
+        "Доступные функции:\n"
+        "📊 Dashboard - статистика продаж\n"
+        "📦 Товары - управление товарами\n"
+        "🏷️ Категории - управление категориями\n"
+        "📋 Заказы - управление заказами\n"
+        "👥 Клиенты - просмотр клиентов\n\n"
+        "Нажмите кнопку ниже чтобы открыть:",
+        reply_markup=builder.as_markup(),
+        parse_mode="HTML"
+    )
 
 
 async def main():
