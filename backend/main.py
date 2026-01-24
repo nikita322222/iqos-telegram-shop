@@ -1,7 +1,7 @@
 from fastapi import FastAPI, Depends, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
-from sqlalchemy import func, String
+from sqlalchemy import func
 from typing import List
 
 import models
@@ -9,18 +9,6 @@ import schemas
 from database import get_db, init_db
 from auth import get_current_user
 from config import settings
-
-# Middleware для проверки прав админа
-def get_current_admin(current_user: dict = Depends(get_current_user), db: Session = Depends(get_db)):
-    """Проверка что текущий пользователь - админ"""
-    user = db.query(models.User).filter(
-        models.User.telegram_id == current_user['telegram_id']
-    ).first()
-    
-    if not user or user.role != 'admin':
-        raise HTTPException(status_code=403, detail="Доступ запрещен. Требуются права администратора.")
-    
-    return user
 
 app = FastAPI(title="IQOS Shop API")
 
@@ -967,139 +955,6 @@ def get_stats(db: Session = Depends(get_db)):
         "orders": orders_count,
         "categories": [{"name": cat, "count": count} for cat, count in categories]
     }
-
-
-# === ADMIN PANEL ENDPOINTS ===
-
-@app.get("/api/admin/dashboard")
-def get_admin_dashboard(
-    admin: models.User = Depends(get_current_admin),
-    db: Session = Depends(get_db)
-):
-    """Статистика для админ панели"""
-    from datetime import datetime, timedelta
-    
-    today = datetime.utcnow().date()
-    week_ago = today - timedelta(days=7)
-    month_ago = today - timedelta(days=30)
-    
-    # Заказы за сегодня
-    today_orders = db.query(models.Order).filter(
-        func.date(models.Order.created_at) == today
-    ).all()
-    
-    # Заказы за неделю
-    week_orders = db.query(models.Order).filter(
-        func.date(models.Order.created_at) >= week_ago
-    ).all()
-    
-    # Заказы за месяц
-    month_orders = db.query(models.Order).filter(
-        func.date(models.Order.created_at) >= month_ago
-    ).all()
-    
-    # Ожидающие заказы
-    pending_orders = db.query(models.Order).filter(
-        models.Order.status == 'pending'
-    ).count()
-    
-    # Новые пользователи за неделю
-    new_users = db.query(models.User).filter(
-        func.date(models.User.created_at) >= week_ago
-    ).count()
-    
-    return {
-        "today": {
-            "orders_count": len(today_orders),
-            "revenue": sum(order.total_amount for order in today_orders)
-        },
-        "week": {
-            "orders_count": len(week_orders),
-            "revenue": sum(order.total_amount for order in week_orders)
-        },
-        "month": {
-            "orders_count": len(month_orders),
-            "revenue": sum(order.total_amount for order in month_orders)
-        },
-        "pending_orders": pending_orders,
-        "new_users_week": new_users
-    }
-
-
-@app.get("/api/admin/orders")
-def get_admin_orders(
-    status: str = None,
-    delivery_type: str = None,
-    search: str = None,
-    skip: int = 0,
-    limit: int = 50,
-    admin: models.User = Depends(get_current_admin),
-    db: Session = Depends(get_db)
-):
-    """Получение всех заказов для админа с фильтрами"""
-    query = db.query(models.Order)
-    
-    # Фильтр по статусу
-    if status:
-        query = query.filter(models.Order.status == status)
-    
-    # Фильтр по типу доставки
-    if delivery_type:
-        query = query.filter(models.Order.delivery_type == delivery_type)
-    
-    # Поиск по номеру заказа, имени или телефону
-    if search:
-        search_pattern = f"%{search}%"
-        query = query.filter(
-            (models.Order.id.cast(String).like(search_pattern)) |
-            (models.Order.full_name.ilike(search_pattern)) |
-            (models.Order.phone.like(search_pattern))
-        )
-    
-    # Сортировка по дате (новые сверху)
-    orders = query.order_by(models.Order.created_at.desc()).offset(skip).limit(limit).all()
-    
-    return orders
-
-
-@app.get("/api/admin/orders/{order_id}")
-def get_admin_order_details(
-    order_id: int,
-    admin: models.User = Depends(get_current_admin),
-    db: Session = Depends(get_db)
-):
-    """Получение детальной информации о заказе"""
-    order = db.query(models.Order).filter(models.Order.id == order_id).first()
-    
-    if not order:
-        raise HTTPException(status_code=404, detail="Заказ не найден")
-    
-    return order
-
-
-@app.patch("/api/admin/products/{product_id}")
-def update_product(
-    product_id: int,
-    product_data: dict,
-    admin: models.User = Depends(get_current_admin),
-    db: Session = Depends(get_db)
-):
-    """Обновление товара (цена, бейдж, активность)"""
-    product = db.query(models.Product).filter(models.Product.id == product_id).first()
-    
-    if not product:
-        raise HTTPException(status_code=404, detail="Товар не найден")
-    
-    # Обновляем только разрешенные поля
-    allowed_fields = ['price', 'badge', 'is_active', 'stock']
-    for field, value in product_data.items():
-        if field in allowed_fields:
-            setattr(product, field, value)
-    
-    db.commit()
-    db.refresh(product)
-    
-    return {"message": "Товар обновлен", "product": product}
 
 
 if __name__ == "__main__":

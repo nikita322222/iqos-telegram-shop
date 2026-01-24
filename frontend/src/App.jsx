@@ -9,8 +9,6 @@ import CartPage from './pages/CartPage'
 import CheckoutPage from './pages/CheckoutPage'
 import ProfilePage from './pages/ProfilePage'
 import BonusPage from './pages/BonusPage'
-import AdminDashboard from './pages/admin/AdminDashboard'
-import AdminOrders from './pages/admin/AdminOrders'
 import { CartProvider } from './context/CartContext'
 import { ThemeProvider, useTheme } from './context/ThemeContext'
 
@@ -76,8 +74,6 @@ function AppContent() {
             <Route path="/checkout" element={<CheckoutPage tg={tg} />} />
             <Route path="/bonus" element={<BonusPage tg={tg} />} />
             <Route path="/profile" element={<ProfilePage tg={tg} />} />
-            <Route path="/admin" element={<AdminDashboard tg={tg} />} />
-            <Route path="/admin/orders" element={<AdminOrders tg={tg} />} />
           </Routes>
         </Layout>
       </Router>

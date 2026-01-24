@@ -43,13 +43,6 @@ export const api = {
   createSavedAddress: (data) => apiClient.post('/api/saved-addresses', data),
   updateSavedAddress: (id, data) => apiClient.put(`/api/saved-addresses/${id}`, data),
   deleteSavedAddress: (id) => apiClient.delete(`/api/saved-addresses/${id}`),
-  
-  // Admin
-  getAdminDashboard: () => apiClient.get('/api/admin/dashboard'),
-  getAdminOrders: (params) => apiClient.get('/api/admin/orders', { params }),
-  getAdminOrderDetails: (id) => apiClient.get(`/api/admin/orders/${id}`),
-  updateOrderStatus: (id, status) => apiClient.patch(`/api/orders/${id}/status`, { status }),
-  updateProduct: (id, data) => apiClient.patch(`/api/admin/products/${id}`, data),
 }
 
 export default apiClient
