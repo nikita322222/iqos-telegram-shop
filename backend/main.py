@@ -1,14 +1,29 @@
-from fastapi import FastAPI, Depends, HTTPException
+from fastapi import FastAPI, Depends, HTTPException, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from sqlalchemy.orm import Session
-from sqlalchemy import func
+from sqlalchemy import func, String
 from typing import List
+import shutil
+from pathlib import Path
 
 import models
 import schemas
 from database import get_db, init_db
 from auth import get_current_user
 from config import settings
+
+# Middleware для проверки прав админа
+def get_current_admin(current_user: dict = Depends(get_current_user), db: Session = Depends(get_db)):
+    """Проверка что текущий пользователь - админ"""
+    user = db.query(models.User).filter(
+        models.User.telegram_id == current_user['telegram_id']
+    ).first()
+    
+    if not user or user.role != 'admin':
+        raise HTTPException(status_code=403, detail="Доступ запрещен. Требуются права администратора.")
+    
+    return user
 
 app = FastAPI(title="IQOS Shop API")
 
@@ -901,6 +916,299 @@ def delete_saved_address(
 
 
 # === ADMIN ENDPOINTS ===
+
+@app.get("/api/admin/dashboard")
+def get_admin_dashboard(
+    admin: models.User = Depends(get_current_admin),
+    db: Session = Depends(get_db)
+):
+    """Статистика для админ панели"""
+    from datetime import datetime, timedelta
+    
+    today = datetime.utcnow().date()
+    week_ago = today - timedelta(days=7)
+    month_ago = today - timedelta(days=30)
+    
+    # Заказы за сегодня
+    today_orders = db.query(models.Order).filter(
+        func.date(models.Order.created_at) == today
+    ).all()
+    
+    # Заказы за неделю
+    week_orders = db.query(models.Order).filter(
+        func.date(models.Order.created_at) >= week_ago
+    ).all()
+    
+    # Заказы за месяц
+    month_orders = db.query(models.Order).filter(
+        func.date(models.Order.created_at) >= month_ago
+    ).all()
+    
+    # Ожидающие заказы
+    pending_orders = db.query(models.Order).filter(
+        models.Order.status == 'pending'
+    ).count()
+    
+    # Новые пользователи
+    new_users_week = db.query(models.User).filter(
+        func.date(models.User.created_at) >= week_ago
+    ).count()
+    
+    # Топ товары
+    from sqlalchemy import desc
+    top_products = db.query(
+        models.OrderItem.product_id,
+        func.sum(models.OrderItem.quantity).label('total_sold')
+    ).group_by(models.OrderItem.product_id).order_by(desc('total_sold')).limit(5).all()
+    
+    return {
+        "today": {
+            "orders_count": len(today_orders),
+            "revenue": sum(order.total_amount for order in today_orders)
+        },
+        "week": {
+            "orders_count": len(week_orders),
+            "revenue": sum(order.total_amount for order in week_orders)
+        },
+        "month": {
+            "orders_count": len(month_orders),
+            "revenue": sum(order.total_amount for order in month_orders)
+        },
+        "pending_orders": pending_orders,
+        "new_users_week": new_users_week,
+        "top_products": [{"product_id": p[0], "sold": p[1]} for p in top_products]
+    }
+
+
+# Products Management
+@app.get("/api/admin/products")
+def get_admin_products(
+    skip: int = 0,
+    limit: int = 100,
+    category: str = None,
+    search: str = None,
+    admin: models.User = Depends(get_current_admin),
+    db: Session = Depends(get_db)
+):
+    """Получение всех товаров для админа"""
+    query = db.query(models.Product)
+    
+    if category:
+        query = query.filter(models.Product.category == category)
+    
+    if search:
+        search_pattern = f"%{search}%"
+        query = query.filter(models.Product.name.ilike(search_pattern))
+    
+    products = query.order_by(models.Product.id.desc()).offset(skip).limit(limit).all()
+    return products
+
+
+@app.post("/api/admin/products")
+def create_product(
+    product_data: schemas.ProductCreate,
+    admin: models.User = Depends(get_current_admin),
+    db: Session = Depends(get_db)
+):
+    """Создание нового товара"""
+    product = models.Product(**product_data.dict())
+    db.add(product)
+    db.commit()
+    db.refresh(product)
+    return product
+
+
+@app.put("/api/admin/products/{product_id}")
+def update_product(
+    product_id: int,
+    product_data: schemas.ProductCreate,
+    admin: models.User = Depends(get_current_admin),
+    db: Session = Depends(get_db)
+):
+    """Обновление товара"""
+    product = db.query(models.Product).filter(models.Product.id == product_id).first()
+    
+    if not product:
+        raise HTTPException(status_code=404, detail="Товар не найден")
+    
+    for key, value in product_data.dict().items():
+        setattr(product, key, value)
+    
+    db.commit()
+    db.refresh(product)
+    return product
+
+
+@app.delete("/api/admin/products/{product_id}")
+def delete_product(
+    product_id: int,
+    admin: models.User = Depends(get_current_admin),
+    db: Session = Depends(get_db)
+):
+    """Удаление товара"""
+    product = db.query(models.Product).filter(models.Product.id == product_id).first()
+    
+    if not product:
+        raise HTTPException(status_code=404, detail="Товар не найден")
+    
+    db.delete(product)
+    db.commit()
+    return {"message": "Товар удален"}
+
+
+# Categories Management
+@app.get("/api/admin/categories")
+def get_categories(
+    admin: models.User = Depends(get_current_admin),
+    db: Session = Depends(get_db)
+):
+    """Получение всех категорий"""
+    categories = db.query(models.Category).order_by(models.Category.sort_order).all()
+    return categories
+
+
+@app.post("/api/admin/categories")
+def create_category(
+    category_data: dict,
+    admin: models.User = Depends(get_current_admin),
+    db: Session = Depends(get_db)
+):
+    """Создание новой категории"""
+    category = models.Category(**category_data)
+    db.add(category)
+    db.commit()
+    db.refresh(category)
+    return category
+
+
+@app.put("/api/admin/categories/{category_id}")
+def update_category(
+    category_id: int,
+    category_data: dict,
+    admin: models.User = Depends(get_current_admin),
+    db: Session = Depends(get_db)
+):
+    """Обновление категории"""
+    category = db.query(models.Category).filter(models.Category.id == category_id).first()
+    
+    if not category:
+        raise HTTPException(status_code=404, detail="Категория не найдена")
+    
+    for key, value in category_data.items():
+        setattr(category, key, value)
+    
+    db.commit()
+    db.refresh(category)
+    return category
+
+
+@app.delete("/api/admin/categories/{category_id}")
+def delete_category(
+    category_id: int,
+    admin: models.User = Depends(get_current_admin),
+    db: Session = Depends(get_db)
+):
+    """Удаление категории"""
+    category = db.query(models.Category).filter(models.Category.id == category_id).first()
+    
+    if not category:
+        raise HTTPException(status_code=404, detail="Категория не найдена")
+    
+    db.delete(category)
+    db.commit()
+    return {"message": "Категория удалена"}
+
+
+# Customers Management
+@app.get("/api/admin/customers")
+def get_customers(
+    skip: int = 0,
+    limit: int = 100,
+    search: str = None,
+    admin: models.User = Depends(get_current_admin),
+    db: Session = Depends(get_db)
+):
+    """Получение списка клиентов"""
+    query = db.query(models.User)
+    
+    if search:
+        search_pattern = f"%{search}%"
+        query = query.filter(
+            (models.User.username.ilike(search_pattern)) |
+            (models.User.first_name.ilike(search_pattern)) |
+            (models.User.last_name.ilike(search_pattern))
+        )
+    
+    customers = query.order_by(models.User.created_at.desc()).offset(skip).limit(limit).all()
+    return customers
+
+
+# Orders Management
+@app.get("/api/admin/orders")
+def get_admin_orders(
+    status: str = None,
+    delivery_type: str = None,
+    search: str = None,
+    skip: int = 0,
+    limit: int = 50,
+    admin: models.User = Depends(get_current_admin),
+    db: Session = Depends(get_db)
+):
+    """Получение всех заказов для админа"""
+    query = db.query(models.Order)
+    
+    if status:
+        query = query.filter(models.Order.status == status)
+    
+    if delivery_type:
+        query = query.filter(models.Order.delivery_type == delivery_type)
+    
+    if search:
+        search_pattern = f"%{search}%"
+        query = query.filter(
+            (models.Order.id.cast(String).like(search_pattern)) |
+            (models.Order.full_name.ilike(search_pattern)) |
+            (models.Order.phone.like(search_pattern))
+        )
+    
+    orders = query.order_by(models.Order.created_at.desc()).offset(skip).limit(limit).all()
+    return orders
+
+
+# Image Upload
+from fastapi import UploadFile, File
+import shutil
+from pathlib import Path
+
+@app.post("/api/admin/upload-image")
+async def upload_image(
+    file: UploadFile = File(...),
+    admin: models.User = Depends(get_current_admin)
+):
+    """Загрузка изображения товара"""
+    # Создаем папку для изображений если её нет
+    upload_dir = Path("uploads/products")
+    upload_dir.mkdir(parents=True, exist_ok=True)
+    
+    # Генерируем уникальное имя файла
+    import uuid
+    file_extension = file.filename.split(".")[-1]
+    unique_filename = f"{uuid.uuid4()}.{file_extension}"
+    file_path = upload_dir / unique_filename
+    
+    # Сохраняем файл
+    with file_path.open("wb") as buffer:
+        shutil.copyfileobj(file.file, buffer)
+    
+    # Возвращаем URL изображения
+    image_url = f"/uploads/products/{unique_filename}"
+    return {"image_url": image_url}
+
+
+# Serve uploaded images
+from fastapi.staticfiles import StaticFiles
+app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
+
 
 @app.post("/api/admin/import-products")
 def import_products_bulk(products: List[schemas.ProductCreate], db: Session = Depends(get_db)):

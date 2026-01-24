@@ -28,6 +28,9 @@ class User(Base):
     total_orders_count = Column(Integer, default=0)  # Количество завершенных заказов
     loyalty_level = Column(String, default="bronze")  # bronze, silver, gold
     
+    # Роль пользователя
+    role = Column(String, default="customer")  # customer, admin
+    
     orders = relationship("Order", back_populates="user")
     favorites = relationship("Favorite", back_populates="user")
     bonus_transactions = relationship("BonusTransaction", back_populates="user")
@@ -142,4 +145,15 @@ class SavedAddress(Base):
     europost_office = Column(String, nullable=True)
     
     is_default = Column(Boolean, default=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+
+class Category(Base):
+    __tablename__ = "categories"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, unique=True, nullable=False)
+    description = Column(Text, nullable=True)
+    is_active = Column(Boolean, default=True)
+    sort_order = Column(Integer, default=0)  # Порядок отображения
     created_at = Column(DateTime, default=datetime.utcnow)
