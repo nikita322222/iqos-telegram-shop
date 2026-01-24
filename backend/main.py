@@ -26,10 +26,10 @@ def get_current_admin(current_user: dict = Depends(get_current_user), db: Sessio
 
 app = FastAPI(title="IQOS Shop API")
 
-# CORS
+# CORS - разрешаем все origins для админки
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.cors_origins_list,
+    allow_origins=["*"],  # Временно разрешаем все для отладки
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
