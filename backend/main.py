@@ -1201,55 +1201,49 @@ async def upload_image(
     file: UploadFile = File(...),
     admin: models.User = Depends(get_current_admin)
 ):
-    """Загрузка изображения товара через Imgur"""
+    """Загрузка изображения товара через Supabase Storage"""
     
-    # Проверяем настроен ли Imgur client ID
-    if not settings.imgur_client_id:
+    # Проверяем настроен ли Supabase
+    if not settings.supabase_url or not settings.supabase_key:
         return {
             "image_url": "",
-            "message": "Imgur не настроен. Используйте прямые URL изображений или настройте IMGUR_CLIENT_ID переменную окружения.",
+            "message": "Supabase не настроен. Используйте прямые URL изображений или настройте SUPABASE_URL и SUPABASE_KEY переменные окружения.",
             "filename": file.filename
         }
     
     try:
-        import base64
-        import httpx
+        from supabase import create_client
+        import uuid
+        from datetime import datetime
         
-        # Читаем файл и конвертируем в base64
+        # Создаем клиент Supabase
+        supabase = create_client(settings.supabase_url, settings.supabase_key)
+        
+        # Читаем файл
         contents = await file.read()
-        image_base64 = base64.b64encode(contents).decode('utf-8')
         
-        # Загружаем в Imgur
-        async with httpx.AsyncClient() as client:
-            response = await client.post(
-                'https://api.imgur.com/3/image',
-                headers={
-                    'Authorization': f'Client-ID {settings.imgur_client_id}'
-                },
-                data={
-                    'image': image_base64,
-                    'type': 'base64'
-                }
-            )
-            
-            if response.status_code == 200:
-                result = response.json()
-                image_url = result['data']['link']
-                
-                return {
-                    "image_url": image_url,
-                    "message": "Изображение успешно загружено",
-                    "filename": file.filename
-                }
-            else:
-                return {
-                    "image_url": "",
-                    "message": f"Ошибка Imgur API: {response.status_code}",
-                    "filename": file.filename
-                }
+        # Генерируем уникальное имя файла
+        file_ext = file.filename.split('.')[-1] if '.' in file.filename else 'jpg'
+        unique_filename = f"{datetime.now().strftime('%Y%m%d_%H%M%S')}_{uuid.uuid4().hex[:8]}.{file_ext}"
+        
+        # Загружаем в Supabase Storage (bucket: products)
+        result = supabase.storage.from_('products').upload(
+            path=unique_filename,
+            file=contents,
+            file_options={"content-type": file.content_type or "image/jpeg"}
+        )
+        
+        # Получаем публичный URL
+        public_url = supabase.storage.from_('products').get_public_url(unique_filename)
+        
+        return {
+            "image_url": public_url,
+            "message": "Изображение успешно загружено",
+            "filename": file.filename
+        }
         
     except Exception as e:
-        print(f"Ошибка загрузки в Imgur: {e}")
+        print(f"Ошибка загрузки в Supabase: {e}")
         return {
             "image_url": "",
             "message": f"Ошибка загрузки: {str(e)}",
