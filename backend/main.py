@@ -1212,7 +1212,15 @@ async def upload_image(
         }
     
     try:
-        from supabase import create_client
+        try:
+            from supabase import create_client
+        except ImportError:
+            return {
+                "image_url": "",
+                "message": "Библиотека Supabase не установлена. Используйте прямые URL изображений.",
+                "filename": file.filename
+            }
+        
         import uuid
         from datetime import datetime
         
@@ -1246,8 +1254,9 @@ async def upload_image(
         print(f"Ошибка загрузки в Supabase: {e}")
         return {
             "image_url": "",
-            "message": f"Ошибка загрузки: {str(e)}",
+            "message": f"Ошибка загрузки: {str(e)}. Используйте прямые URL изображений.",
             "filename": file.filename
+        }
         }
 
 
