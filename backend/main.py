@@ -935,7 +935,7 @@ def delete_saved_address(
 
 @app.get("/api/admin/dashboard")
 def get_admin_dashboard(
-    admin: models.User = Depends(get_admin_bypass),
+    admin: models.User = Depends(get_current_admin),
     db: Session = Depends(get_db)
 ):
     """Статистика для админ панели"""
@@ -1003,7 +1003,7 @@ def get_admin_products(
     limit: int = 100,
     category: str = None,
     search: str = None,
-    admin: models.User = Depends(get_admin_bypass),
+    admin: models.User = Depends(get_current_admin),
     db: Session = Depends(get_db)
 ):
     """Получение всех товаров для админа"""
@@ -1023,7 +1023,7 @@ def get_admin_products(
 @app.post("/api/admin/products")
 def create_product(
     product_data: schemas.ProductCreate,
-    admin: models.User = Depends(get_admin_bypass),
+    admin: models.User = Depends(get_current_admin),
     db: Session = Depends(get_db)
 ):
     """Создание нового товара"""
@@ -1038,7 +1038,7 @@ def create_product(
 def update_product(
     product_id: int,
     product_data: schemas.ProductCreate,
-    admin: models.User = Depends(get_admin_bypass),
+    admin: models.User = Depends(get_current_admin),
     db: Session = Depends(get_db)
 ):
     """Обновление товара"""
@@ -1058,7 +1058,7 @@ def update_product(
 @app.delete("/api/admin/products/{product_id}")
 def delete_product(
     product_id: int,
-    admin: models.User = Depends(get_admin_bypass),
+    admin: models.User = Depends(get_current_admin),
     db: Session = Depends(get_db)
 ):
     """Удаление товара"""
@@ -1075,7 +1075,7 @@ def delete_product(
 # Categories Management
 @app.get("/api/admin/categories")
 def get_categories(
-    admin: models.User = Depends(get_admin_bypass),
+    admin: models.User = Depends(get_current_admin),
     db: Session = Depends(get_db)
 ):
     """Получение всех категорий"""
@@ -1086,7 +1086,7 @@ def get_categories(
 @app.post("/api/admin/categories")
 def create_category(
     category_data: dict,
-    admin: models.User = Depends(get_admin_bypass),
+    admin: models.User = Depends(get_current_admin),
     db: Session = Depends(get_db)
 ):
     """Создание новой категории"""
@@ -1101,7 +1101,7 @@ def create_category(
 def update_category(
     category_id: int,
     category_data: dict,
-    admin: models.User = Depends(get_admin_bypass),
+    admin: models.User = Depends(get_current_admin),
     db: Session = Depends(get_db)
 ):
     """Обновление категории"""
@@ -1121,7 +1121,7 @@ def update_category(
 @app.delete("/api/admin/categories/{category_id}")
 def delete_category(
     category_id: int,
-    admin: models.User = Depends(get_admin_bypass),
+    admin: models.User = Depends(get_current_admin),
     db: Session = Depends(get_db)
 ):
     """Удаление категории"""
@@ -1141,7 +1141,7 @@ def get_customers(
     skip: int = 0,
     limit: int = 100,
     search: str = None,
-    admin: models.User = Depends(get_admin_bypass),
+    admin: models.User = Depends(get_current_admin),
     db: Session = Depends(get_db)
 ):
     """Получение списка клиентов"""
@@ -1167,7 +1167,7 @@ def get_admin_orders(
     search: str = None,
     skip: int = 0,
     limit: int = 50,
-    admin: models.User = Depends(get_admin_bypass),
+    admin: models.User = Depends(get_current_admin),
     db: Session = Depends(get_db)
 ):
     """Получение всех заказов для админа"""
@@ -1199,7 +1199,7 @@ from pathlib import Path
 @app.post("/api/admin/upload-image")
 async def upload_image(
     file: UploadFile = File(...),
-    admin: models.User = Depends(get_admin_bypass)
+    admin: models.User = Depends(get_current_admin)
 ):
     """Загрузка изображения товара
     
