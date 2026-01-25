@@ -7,6 +7,9 @@ class Settings(BaseSettings):
     secret_key: str = "change-me-in-production"
     cors_origins: str = "http://localhost:5173,http://localhost:5174,https://iqos-shop.vercel.app,https://admin-frontend-phi-seven.vercel.app"
     
+    # Imgur settings (опционально)
+    imgur_client_id: str = ""
+    
     class Config:
         env_file = ".env"
     

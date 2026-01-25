@@ -1201,20 +1201,60 @@ async def upload_image(
     file: UploadFile = File(...),
     admin: models.User = Depends(get_current_admin)
 ):
-    """Загрузка изображения товара
+    """Загрузка изображения товара через Imgur"""
     
-    NOTE: На Render файловая система эфемерная, поэтому загрузка файлов не работает.
-    Используйте прямые URL изображений (например, с Imgur, Cloudinary, или вашего CDN).
+    # Проверяем настроен ли Imgur client ID
+    if not settings.imgur_client_id:
+        return {
+            "image_url": "",
+            "message": "Imgur не настроен. Используйте прямые URL изображений или настройте IMGUR_CLIENT_ID переменную окружения.",
+            "filename": file.filename
+        }
     
-    Эта функция временно возвращает имя файла для тестирования.
-    """
-    # Для production нужно интегрировать Cloudinary или другой CDN
-    # Пока возвращаем заглушку
-    return {
-        "image_url": "",
-        "message": "Загрузка файлов временно недоступна. Используйте прямые URL изображений.",
-        "filename": file.filename
-    }
+    try:
+        import base64
+        import httpx
+        
+        # Читаем файл и конвертируем в base64
+        contents = await file.read()
+        image_base64 = base64.b64encode(contents).decode('utf-8')
+        
+        # Загружаем в Imgur
+        async with httpx.AsyncClient() as client:
+            response = await client.post(
+                'https://api.imgur.com/3/image',
+                headers={
+                    'Authorization': f'Client-ID {settings.imgur_client_id}'
+                },
+                data={
+                    'image': image_base64,
+                    'type': 'base64'
+                }
+            )
+            
+            if response.status_code == 200:
+                result = response.json()
+                image_url = result['data']['link']
+                
+                return {
+                    "image_url": image_url,
+                    "message": "Изображение успешно загружено",
+                    "filename": file.filename
+                }
+            else:
+                return {
+                    "image_url": "",
+                    "message": f"Ошибка Imgur API: {response.status_code}",
+                    "filename": file.filename
+                }
+        
+    except Exception as e:
+        print(f"Ошибка загрузки в Imgur: {e}")
+        return {
+            "image_url": "",
+            "message": f"Ошибка загрузки: {str(e)}",
+            "filename": file.filename
+        }
 
 
 # Serve uploaded images
