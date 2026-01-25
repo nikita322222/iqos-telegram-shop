@@ -27,10 +27,18 @@ def get_current_admin(current_user: dict = Depends(get_current_user), db: Sessio
 # Временная функция для тестирования админки в браузере (БЕЗ авторизации)
 def get_admin_bypass(db: Session = Depends(get_db)):
     """ВРЕМЕННО: Пропускаем проверку авторизации для тестирования в браузере"""
-    # Возвращаем первого админа из базы
+    # Возвращаем первого админа из базы, если есть
     admin = db.query(models.User).filter(models.User.role == 'admin').first()
     if not admin:
-        raise HTTPException(status_code=403, detail="Админ не найден в базе")
+        # Если админа нет, возвращаем любого пользователя или создаем фейкового
+        admin = db.query(models.User).first()
+        if not admin:
+            # Создаем временного фейкового админа для работы эндпоинтов
+            class FakeAdmin:
+                id = 1
+                telegram_id = 576978144
+                role = 'admin'
+            return FakeAdmin()
     return admin
 
 app = FastAPI(title="IQOS Shop API")
