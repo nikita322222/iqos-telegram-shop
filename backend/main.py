@@ -1257,7 +1257,6 @@ async def upload_image(
             "message": f"Ошибка загрузки: {str(e)}. Используйте прямые URL изображений.",
             "filename": file.filename
         }
-        }
 
 
 # Serve uploaded images
