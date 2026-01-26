@@ -1375,6 +1375,13 @@ async def add_customer(
                 return {"message": "Пользователь активирован", "user": existing}
         
         # Получаем информацию о пользователе из Telegram
+        user_data = {
+            'telegram_id': telegram_id,
+            'username': None,
+            'first_name': None,
+            'last_name': None
+        }
+        
         try:
             bot_token = settings.bot_token
             async with httpx.AsyncClient() as client:
@@ -1388,36 +1395,43 @@ async def add_customer(
                     data = response.json()
                     if data.get('ok'):
                         chat = data['result']
-                        
-                        # Создаем пользователя
-                        new_user = models.User(
-                            telegram_id=telegram_id,
-                            username=chat.get('username'),
-                            first_name=chat.get('first_name'),
-                            last_name=chat.get('last_name'),
-                            is_active=True
-                        )
-                        db.add(new_user)
-                        db.commit()
-                        db.refresh(new_user)
-                        
-                        return {"message": "Пользователь добавлен", "user": new_user}
+                        user_data['username'] = chat.get('username')
+                        user_data['first_name'] = chat.get('first_name')
+                        user_data['last_name'] = chat.get('last_name')
+                        print(f"✅ Получены данные из Telegram для {telegram_id}: {user_data}")
                     else:
-                        raise HTTPException(status_code=400, detail="Пользователь не найден в Telegram")
+                        print(f"⚠️ Telegram API вернул ok=false для {telegram_id}: {data}")
                 else:
-                    raise HTTPException(status_code=400, detail="Не удалось получить данные из Telegram")
+                    print(f"⚠️ Telegram API вернул статус {response.status_code} для {telegram_id}")
+        except httpx.HTTPError as e:
+            print(f"⚠️ Ошибка HTTP при получении данных из Telegram для {telegram_id}: {e}")
         except Exception as e:
-            print(f"Ошибка получения данных из Telegram: {e}")
-            # Создаем пользователя без дополнительных данных
+            print(f"⚠️ Неожиданная ошибка при получении данных из Telegram для {telegram_id}: {e}")
+        
+        # Создаем пользователя (с данными из Telegram или без)
+        try:
             new_user = models.User(
-                telegram_id=telegram_id,
+                telegram_id=user_data['telegram_id'],
+                username=user_data['username'],
+                first_name=user_data['first_name'],
+                last_name=user_data['last_name'],
                 is_active=True
             )
             db.add(new_user)
             db.commit()
             db.refresh(new_user)
             
-            return {"message": "Пользователь добавлен (без данных из Telegram)", "user": new_user}
+            message = "Пользователь добавлен"
+            if not user_data['first_name']:
+                message += " (данные из Telegram не получены)"
+            
+            print(f"✅ Пользователь {telegram_id} успешно добавлен в базу")
+            return {"message": message, "user": new_user}
+            
+        except Exception as e:
+            db.rollback()
+            print(f"❌ Ошибка добавления пользователя {telegram_id} в базу: {e}")
+            raise HTTPException(status_code=500, detail=f"Ошибка добавления в базу данных: {str(e)}")
     
     # Если указан только username
     if username:
