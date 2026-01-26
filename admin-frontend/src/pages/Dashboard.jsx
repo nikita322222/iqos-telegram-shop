@@ -197,6 +197,7 @@ function Dashboard() {
                 className="form-input"
                 value={dailyStartDate}
                 onChange={(e) => setDailyStartDate(e.target.value)}
+                min="2026-01-01"
                 style={{ width: '200px' }}
               />
             </div>
@@ -209,6 +210,7 @@ function Dashboard() {
                 className="form-input"
                 value={dailyEndDate}
                 onChange={(e) => setDailyEndDate(e.target.value)}
+                min="2026-01-01"
                 style={{ width: '200px' }}
               />
             </div>
@@ -296,6 +298,7 @@ function Dashboard() {
                 className="form-input"
                 value={monthlyStartMonth}
                 onChange={(e) => setMonthlyStartMonth(e.target.value)}
+                min="2026-01"
                 style={{ width: '200px' }}
               />
             </div>
@@ -308,6 +311,7 @@ function Dashboard() {
                 className="form-input"
                 value={monthlyEndMonth}
                 onChange={(e) => setMonthlyEndMonth(e.target.value)}
+                min="2026-01"
                 style={{ width: '200px' }}
               />
             </div>

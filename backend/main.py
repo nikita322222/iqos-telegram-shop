@@ -1014,8 +1014,11 @@ def get_daily_stats(
     admin: models.User = Depends(get_current_admin),
     db: Session = Depends(get_db)
 ):
-    """Статистика по дням"""
+    """Статистика по дням (только с 2026 года)"""
     from datetime import datetime, timedelta
+    
+    # Минимальная дата - 1 января 2026
+    min_date = datetime(2026, 1, 1).date()
     
     # Если даты не указаны, берем последние 30 дней
     if not end_date:
@@ -1028,16 +1031,24 @@ def get_daily_stats(
     else:
         start = datetime.strptime(start_date, "%Y-%m-%d").date()
     
-    # Получаем все заказы за период
+    # Ограничиваем минимальной датой
+    if start < min_date:
+        start = min_date
+    if end < min_date:
+        end = min_date
+    
+    # Получаем все заказы за период (только с 2026 года)
     orders = db.query(models.Order).filter(
         func.date(models.Order.created_at) >= start,
-        func.date(models.Order.created_at) <= end
+        func.date(models.Order.created_at) <= end,
+        func.date(models.Order.created_at) >= min_date
     ).all()
     
-    # Получаем новых пользователей за период
+    # Получаем новых пользователей за период (только с 2026 года)
     users = db.query(models.User).filter(
         func.date(models.User.created_at) >= start,
-        func.date(models.User.created_at) <= end
+        func.date(models.User.created_at) <= end,
+        func.date(models.User.created_at) >= min_date
     ).all()
     
     # Группируем по дням
@@ -1090,9 +1101,12 @@ def get_monthly_stats(
     admin: models.User = Depends(get_current_admin),
     db: Session = Depends(get_db)
 ):
-    """Статистика по месяцам"""
+    """Статистика по месяцам (только с 2026 года)"""
     from datetime import datetime
     from dateutil.relativedelta import relativedelta
+    
+    # Минимальная дата - январь 2026
+    min_date = datetime(2026, 1, 1).date()
     
     # Если месяцы не указаны, берем последние 12 месяцев
     if not end_month:
@@ -1105,11 +1119,21 @@ def get_monthly_stats(
     else:
         start = datetime.strptime(start_month + "-01", "%Y-%m-%d").date()
     
-    # Получаем все заказы
-    orders = db.query(models.Order).all()
+    # Ограничиваем минимальной датой
+    if start < min_date:
+        start = min_date
+    if end < min_date:
+        end = min_date
     
-    # Получаем всех пользователей
-    users = db.query(models.User).all()
+    # Получаем все заказы (только с 2026 года)
+    orders = db.query(models.Order).filter(
+        func.date(models.Order.created_at) >= min_date
+    ).all()
+    
+    # Получаем всех пользователей (только с 2026 года)
+    users = db.query(models.User).filter(
+        func.date(models.User.created_at) >= min_date
+    ).all()
     
     # Группируем по месяцам
     monthly_stats = {}
