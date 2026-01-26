@@ -154,6 +154,7 @@ class Category(Base):
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, unique=True, nullable=False)
     description = Column(Text, nullable=True)
+    type = Column(String, default="devices")  # devices (Устройства) или sticks (Стики)
     is_active = Column(Boolean, default=True)
     sort_order = Column(Integer, default=0)  # Порядок отображения
     created_at = Column(DateTime, default=datetime.utcnow)

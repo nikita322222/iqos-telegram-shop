@@ -10,6 +10,7 @@ function Categories() {
   const [formData, setFormData] = useState({
     name: '',
     description: '',
+    type: 'devices',
     is_active: true,
     sort_order: 0
   })
@@ -54,6 +55,7 @@ function Categories() {
     setFormData({
       name: category.name,
       description: category.description || '',
+      type: category.type || 'devices',
       is_active: category.is_active,
       sort_order: category.sort_order
     })
@@ -76,6 +78,7 @@ function Categories() {
     setFormData({
       name: '',
       description: '',
+      type: 'devices',
       is_active: true,
       sort_order: 0
     })
@@ -131,7 +134,7 @@ function Categories() {
                     </p>
                   )}
                   <div style={{ fontSize: '14px', color: 'var(--hint-color)' }}>
-                    Порядок: {category.sort_order}
+                    Тип: {category.type === 'devices' ? '📱 Устройства' : '🚬 Стики'} • Порядок: {category.sort_order}
                   </div>
                 </div>
                 <div style={{ display: 'flex', gap: '8px' }}>
@@ -184,6 +187,19 @@ function Categories() {
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                 />
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Тип категории *</label>
+                <select
+                  className="form-select"
+                  value={formData.type}
+                  onChange={(e) => setFormData({ ...formData, type: e.target.value })}
+                  required
+                >
+                  <option value="devices">📱 Устройства</option>
+                  <option value="sticks">🚬 Стики</option>
+                </select>
               </div>
 
               <div className="form-group">
