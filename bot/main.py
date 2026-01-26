@@ -18,7 +18,7 @@ dp = Dispatcher()
 processed_orders = set()
 
 # Список админов (Telegram ID)
-ADMIN_IDS = [576978144]  # Добавьте сюда ID других админов
+ADMIN_IDS = [576978144, 279680413]  # Добавьте сюда ID других админов
 
 
 async def check_user_access(telegram_id: int) -> bool:
