@@ -33,6 +33,18 @@ function Categories() {
   const handleSubmit = async (e) => {
     e.preventDefault()
     
+    // Проверка уникальности порядка показа
+    const duplicateOrder = categories.find(cat => 
+      cat.sort_order === formData.sort_order && 
+      cat.type === formData.type &&
+      cat.id !== editingCategory?.id
+    )
+    
+    if (duplicateOrder) {
+      alert(`⚠️ Порядок ${formData.sort_order} уже занят категорией "${duplicateOrder.name}" в типе ${formData.type === 'devices' ? 'Устройства' : 'Стики'}`)
+      return
+    }
+    
     try {
       if (editingCategory) {
         await api.updateCategory(editingCategory.id, formData)
@@ -86,26 +98,18 @@ function Categories() {
 
   if (loading) return <div className="loading">Загрузка...</div>
 
-  return (
-    <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-        <h1 className="page-title">🏷️ Категории</h1>
-        <button 
-          className="btn btn-primary"
-          onClick={() => {
-            setEditingCategory(null)
-            resetForm()
-            setShowModal(true)
-          }}
-        >
-          ➕ Добавить категорию
-        </button>
-      </div>
+  // Разделяем категории по типам
+  const deviceCategories = categories.filter(cat => cat.type === 'devices').sort((a, b) => a.sort_order - b.sort_order)
+  const stickCategories = categories.filter(cat => cat.type === 'sticks').sort((a, b) => a.sort_order - b.sort_order)
 
+  const CategoryList = ({ categories, title, icon }) => (
+    <div style={{ marginBottom: '32px' }}>
+      <h2 style={{ fontSize: '20px', fontWeight: '600', marginBottom: '16px' }}>
+        {icon} {title}
+      </h2>
       {categories.length === 0 ? (
-        <div className="empty-state">
-          <div className="empty-icon">🏷️</div>
-          <p>Категорий нет</p>
+        <div style={{ padding: '20px', textAlign: 'center', color: 'var(--hint-color)' }}>
+          Категорий нет
         </div>
       ) : (
         <div style={{ display: 'grid', gap: '12px' }}>
@@ -134,7 +138,7 @@ function Categories() {
                     </p>
                   )}
                   <div style={{ fontSize: '14px', color: 'var(--hint-color)' }}>
-                    Тип: {category.type === 'devices' ? '📱 Устройства' : '🚬 Стики'} • Порядок: {category.sort_order}
+                    Порядок: {category.sort_order}
                   </div>
                 </div>
                 <div style={{ display: 'flex', gap: '8px' }}>
@@ -155,6 +159,44 @@ function Categories() {
             </div>
           ))}
         </div>
+      )}
+    </div>
+  )
+
+  return (
+    <div>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+        <h1 className="page-title">🏷️ Категории</h1>
+        <button 
+          className="btn btn-primary"
+          onClick={() => {
+            setEditingCategory(null)
+            resetForm()
+            setShowModal(true)
+          }}
+        >
+          ➕ Добавить категорию
+        </button>
+      </div>
+
+      {categories.length === 0 ? (
+        <div className="empty-state">
+          <div className="empty-icon">🏷️</div>
+          <p>Категорий нет</p>
+        </div>
+      ) : (
+        <>
+          <CategoryList 
+            categories={deviceCategories} 
+            title="Устройства" 
+            icon="📱"
+          />
+          <CategoryList 
+            categories={stickCategories} 
+            title="Стики" 
+            icon="🚬"
+          />
+        </>
       )}
 
       {/* Модальное окно */}
