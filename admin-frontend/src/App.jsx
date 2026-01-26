@@ -72,10 +72,13 @@ function App() {
       tg.ready()
       tg.expand()
       
-      // Применяем тему
-      if (tg.colorScheme === 'dark') {
-        document.documentElement.setAttribute('data-theme', 'dark')
-      }
+      // Принудительно устанавливаем светлую тему
+      document.documentElement.setAttribute('data-theme', 'light')
+      document.body.setAttribute('data-theme', 'light')
+    } else {
+      // Если не в Telegram, тоже светлая тема
+      document.documentElement.setAttribute('data-theme', 'light')
+      document.body.setAttribute('data-theme', 'light')
     }
   }, [])
 
