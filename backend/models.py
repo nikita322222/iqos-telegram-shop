@@ -34,6 +34,7 @@ class User(Base):
     orders = relationship("Order", back_populates="user")
     favorites = relationship("Favorite", back_populates="user")
     bonus_transactions = relationship("BonusTransaction", back_populates="user")
+    broadcasts = relationship("Broadcast", back_populates="created_by_user")
 
 
 class Product(Base):
@@ -158,3 +159,35 @@ class Category(Base):
     is_active = Column(Boolean, default=True)
     sort_order = Column(Integer, default=0)  # Порядок отображения
     created_at = Column(DateTime, default=datetime.utcnow)
+
+
+class Broadcast(Base):
+    """Модель для рассылок сообщений клиентам"""
+    __tablename__ = "broadcasts"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    message = Column(Text, nullable=False)  # Текст сообщения
+    status = Column(String, default="draft")  # draft, scheduled, sending, completed, failed
+    
+    # Настройки отправки
+    send_immediately = Column(Boolean, default=True)  # Отправить сразу
+    scheduled_time = Column(DateTime, nullable=True)  # Время отложенной отправки
+    
+    # Повторение
+    repeat_enabled = Column(Boolean, default=False)  # Включить повторение
+    repeat_interval_hours = Column(Integer, nullable=True)  # Интервал повторения в часах
+    repeat_count = Column(Integer, default=0)  # Сколько раз уже повторено
+    max_repeats = Column(Integer, nullable=True)  # Максимальное количество повторений (null = бесконечно)
+    last_sent_at = Column(DateTime, nullable=True)  # Когда последний раз отправлено
+    
+    # Статистика
+    total_recipients = Column(Integer, default=0)  # Всего получателей
+    sent_count = Column(Integer, default=0)  # Успешно отправлено
+    failed_count = Column(Integer, default=0)  # Ошибок отправки
+    
+    # Метаданные
+    created_by = Column(Integer, ForeignKey("users.id"), nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    created_by_user = relationship("User", back_populates="broadcasts")

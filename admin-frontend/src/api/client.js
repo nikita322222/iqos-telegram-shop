@@ -46,6 +46,12 @@ export const api = {
   
   // Customers
   getCustomers: (params) => apiClient.get('/api/admin/customers', { params }),
+  
+  // Broadcasts
+  getBroadcasts: (params) => apiClient.get('/api/admin/broadcasts', { params }),
+  createBroadcast: (data) => apiClient.post('/api/admin/broadcasts', data),
+  deleteBroadcast: (id) => apiClient.delete(`/api/admin/broadcasts/${id}`),
+  sendBroadcast: (id) => apiClient.post(`/api/admin/broadcasts/${id}/send`),
 }
 
 export default apiClient

@@ -209,7 +209,7 @@ function Orders() {
                     </>
                   ) : (
                     <div style={{ color: 'var(--hint-color)' }}>
-                      Товары не загружены. Данные заказа: {JSON.stringify(order, null, 2)}
+                      ⚠️ Товары не загружены. Проверьте консоль браузера (F12).
                     </div>
                   )}
                 </div>

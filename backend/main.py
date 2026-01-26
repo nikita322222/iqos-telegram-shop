@@ -5,6 +5,7 @@ from sqlalchemy import func, String
 from typing import List
 import shutil
 from pathlib import Path
+from datetime import datetime
 
 import models
 import schemas
@@ -1334,6 +1335,176 @@ def get_stats(db: Session = Depends(get_db)):
         "orders": orders_count,
         "categories": [{"name": cat, "count": count} for cat, count in categories]
     }
+
+
+# === BROADCAST ENDPOINTS ===
+
+@app.get("/api/admin/broadcasts", response_model=List[schemas.Broadcast])
+def get_broadcasts(
+    skip: int = 0,
+    limit: int = 50,
+    admin: models.User = Depends(get_current_admin),
+    db: Session = Depends(get_db)
+):
+    """Получение списка рассылок"""
+    broadcasts = db.query(models.Broadcast).order_by(
+        models.Broadcast.created_at.desc()
+    ).offset(skip).limit(limit).all()
+    return broadcasts
+
+
+@app.post("/api/admin/broadcasts", response_model=schemas.Broadcast)
+async def create_broadcast(
+    broadcast_data: schemas.BroadcastCreate,
+    admin: models.User = Depends(get_current_admin),
+    db: Session = Depends(get_db)
+):
+    """Создание новой рассылки"""
+    import httpx
+    
+    # Получаем всех активных пользователей
+    users = db.query(models.User).filter(models.User.is_active == True).all()
+    
+    # Создаем рассылку
+    broadcast = models.Broadcast(
+        message=broadcast_data.message,
+        send_immediately=broadcast_data.send_immediately,
+        scheduled_time=broadcast_data.scheduled_time,
+        repeat_enabled=broadcast_data.repeat_enabled,
+        repeat_interval_hours=broadcast_data.repeat_interval_hours,
+        max_repeats=broadcast_data.max_repeats,
+        total_recipients=len(users),
+        created_by=admin.id,
+        status="draft"
+    )
+    db.add(broadcast)
+    db.commit()
+    db.refresh(broadcast)
+    
+    # Если отправка немедленная - отправляем сразу
+    if broadcast_data.send_immediately:
+        broadcast.status = "sending"
+        db.commit()
+        
+        # Отправляем сообщения
+        sent_count = 0
+        failed_count = 0
+        
+        bot_token = settings.bot_token
+        
+        async with httpx.AsyncClient() as client:
+            for user in users:
+                try:
+                    await client.post(
+                        f"https://api.telegram.org/bot{bot_token}/sendMessage",
+                        json={
+                            "chat_id": user.telegram_id,
+                            "text": broadcast_data.message,
+                            "parse_mode": "HTML"
+                        },
+                        timeout=10.0
+                    )
+                    sent_count += 1
+                except Exception as e:
+                    print(f"Ошибка отправки пользователю {user.telegram_id}: {e}")
+                    failed_count += 1
+        
+        broadcast.sent_count = sent_count
+        broadcast.failed_count = failed_count
+        broadcast.status = "completed"
+        broadcast.last_sent_at = datetime.utcnow()
+        db.commit()
+        db.refresh(broadcast)
+    else:
+        broadcast.status = "scheduled"
+        db.commit()
+        db.refresh(broadcast)
+    
+    return broadcast
+
+
+@app.delete("/api/admin/broadcasts/{broadcast_id}")
+def delete_broadcast(
+    broadcast_id: int,
+    admin: models.User = Depends(get_current_admin),
+    db: Session = Depends(get_db)
+):
+    """Удаление рассылки"""
+    broadcast = db.query(models.Broadcast).filter(
+        models.Broadcast.id == broadcast_id
+    ).first()
+    
+    if not broadcast:
+        raise HTTPException(status_code=404, detail="Рассылка не найдена")
+    
+    db.delete(broadcast)
+    db.commit()
+    
+    return {"message": "Рассылка удалена"}
+
+
+@app.post("/api/admin/broadcasts/{broadcast_id}/send")
+async def send_broadcast_now(
+    broadcast_id: int,
+    admin: models.User = Depends(get_current_admin),
+    db: Session = Depends(get_db)
+):
+    """Отправить запланированную рассылку сейчас"""
+    import httpx
+    
+    broadcast = db.query(models.Broadcast).filter(
+        models.Broadcast.id == broadcast_id
+    ).first()
+    
+    if not broadcast:
+        raise HTTPException(status_code=404, detail="Рассылка не найдена")
+    
+    if broadcast.status not in ["scheduled", "draft"]:
+        raise HTTPException(status_code=400, detail="Рассылка уже отправлена или отправляется")
+    
+    # Получаем всех активных пользователей
+    users = db.query(models.User).filter(models.User.is_active == True).all()
+    
+    broadcast.status = "sending"
+    broadcast.total_recipients = len(users)
+    db.commit()
+    
+    # Отправляем сообщения
+    sent_count = 0
+    failed_count = 0
+    
+    bot_token = settings.bot_token
+    
+    async with httpx.AsyncClient() as client:
+        for user in users:
+            try:
+                await client.post(
+                    f"https://api.telegram.org/bot{bot_token}/sendMessage",
+                    json={
+                        "chat_id": user.telegram_id,
+                        "text": broadcast.message,
+                        "parse_mode": "HTML"
+                    },
+                    timeout=10.0
+                )
+                sent_count += 1
+            except Exception as e:
+                print(f"Ошибка отправки пользователю {user.telegram_id}: {e}")
+                failed_count += 1
+    
+    broadcast.sent_count = sent_count
+    broadcast.failed_count = failed_count
+    broadcast.status = "completed"
+    broadcast.last_sent_at = datetime.utcnow()
+    
+    # Если включено повторение, обновляем счетчик
+    if broadcast.repeat_enabled:
+        broadcast.repeat_count += 1
+    
+    db.commit()
+    db.refresh(broadcast)
+    
+    return broadcast
 
 
 if __name__ == "__main__":

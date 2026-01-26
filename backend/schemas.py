@@ -173,3 +173,36 @@ class BonusInfo(BaseModel):
     cashback_percent: float
     next_level_orders: Optional[int] = None
     progress_percent: float
+
+
+class BroadcastCreate(BaseModel):
+    """Создание рассылки"""
+    message: str
+    send_immediately: bool = True
+    scheduled_time: Optional[datetime] = None
+    repeat_enabled: bool = False
+    repeat_interval_hours: Optional[int] = None
+    max_repeats: Optional[int] = None
+
+
+class Broadcast(BaseModel):
+    """Рассылка"""
+    id: int
+    message: str
+    status: str
+    send_immediately: bool
+    scheduled_time: Optional[datetime] = None
+    repeat_enabled: bool
+    repeat_interval_hours: Optional[int] = None
+    repeat_count: int
+    max_repeats: Optional[int] = None
+    last_sent_at: Optional[datetime] = None
+    total_recipients: int
+    sent_count: int
+    failed_count: int
+    created_by: int
+    created_at: datetime
+    updated_at: datetime
+    
+    class Config:
+        from_attributes = True
