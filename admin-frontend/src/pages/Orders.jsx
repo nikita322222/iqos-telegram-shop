@@ -19,6 +19,8 @@ function Orders() {
       if (searchQuery) params.search = searchQuery
       
       const response = await api.getOrders(params)
+      console.log('Загружены заказы:', response.data)
+      console.log('Первый заказ:', response.data[0])
       setOrders(response.data)
     } catch (error) {
       console.error('Ошибка загрузки заказов:', error)
@@ -178,7 +180,7 @@ function Orders() {
               </button>
 
               {/* Товары */}
-              {expandedOrder === order.id && order.items && (
+              {expandedOrder === order.id && (
                 <div style={{
                   background: 'var(--bg-color)',
                   padding: '12px',
@@ -187,21 +189,29 @@ function Orders() {
                   fontSize: '14px'
                 }}>
                   <div style={{ fontWeight: '600', marginBottom: '8px' }}>Товары:</div>
-                  {order.items.map((item, idx) => (
-                    <div key={idx} style={{ marginBottom: '4px' }}>
-                      • {item.product.name} × {item.quantity} = {(item.price * item.quantity).toFixed(2)} BYN
+                  {order.items && order.items.length > 0 ? (
+                    <>
+                      {order.items.map((item, idx) => (
+                        <div key={idx} style={{ marginBottom: '4px' }}>
+                          • {item.product?.name || 'Товар'} × {item.quantity} = {(item.price * item.quantity).toFixed(2)} BYN
+                        </div>
+                      ))}
+                      <div style={{ marginTop: '8px', paddingTop: '8px', borderTop: '1px solid var(--border-color)' }}>
+                        <div>Товары: {(order.total_amount - order.delivery_cost + order.bonus_used).toFixed(2)} BYN</div>
+                        <div>Доставка: {order.delivery_cost} BYN</div>
+                        {order.bonus_used > 0 && (
+                          <div style={{ color: '#34C759' }}>Бонусы: -{order.bonus_used} BYN</div>
+                        )}
+                        <div style={{ fontWeight: '600', marginTop: '4px' }}>
+                          Итого: {order.total_amount} BYN
+                        </div>
+                      </div>
+                    </>
+                  ) : (
+                    <div style={{ color: 'var(--hint-color)' }}>
+                      Товары не загружены. Данные заказа: {JSON.stringify(order, null, 2)}
                     </div>
-                  ))}
-                  <div style={{ marginTop: '8px', paddingTop: '8px', borderTop: '1px solid var(--border-color)' }}>
-                    <div>Товары: {(order.total_amount - order.delivery_cost + order.bonus_used).toFixed(2)} BYN</div>
-                    <div>Доставка: {order.delivery_cost} BYN</div>
-                    {order.bonus_used > 0 && (
-                      <div style={{ color: '#34C759' }}>Бонусы: -{order.bonus_used} BYN</div>
-                    )}
-                    <div style={{ fontWeight: '600', marginTop: '4px' }}>
-                      Итого: {order.total_amount} BYN
-                    </div>
-                  </div>
+                  )}
                 </div>
               )}
 

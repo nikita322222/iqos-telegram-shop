@@ -1204,7 +1204,6 @@ def get_admin_orders(
     
     orders = query.order_by(models.Order.created_at.desc()).offset(skip).limit(limit).all()
     return orders
-    return orders
 
 
 # Image Upload
