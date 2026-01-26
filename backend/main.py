@@ -305,6 +305,16 @@ def get_product(
     return product
 
 
+@app.get("/api/categories")
+def get_public_categories(db: Session = Depends(get_db)):
+    """Получение списка активных категорий (публичный эндпоинт)"""
+    categories = db.query(models.Category).filter(
+        models.Category.is_active == True
+    ).order_by(models.Category.sort_order).all()
+    
+    return categories
+
+
 # === ORDER ENDPOINTS ===
 
 @app.post("/api/orders", response_model=schemas.Order)

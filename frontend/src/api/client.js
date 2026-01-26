@@ -22,6 +22,9 @@ export const api = {
   getProducts: (params) => apiClient.get('/api/products', { params }),
   getProduct: (id) => apiClient.get(`/api/products/${id}`),
   
+  // Categories
+  getCategories: () => apiClient.get('/api/categories'),
+  
   // Orders
   createOrder: (data) => apiClient.post('/api/orders', data),
   getOrders: () => apiClient.get('/api/orders'),

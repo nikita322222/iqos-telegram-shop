@@ -39,22 +39,45 @@ const CatalogPage = ({ tg }) => {
     inStock: false,
     badge: '' // '', 'NEW', 'ХИТ', 'СКИДКА'
   })
+  const [categories, setCategories] = useState([])
+  const [mainCategories, setMainCategories] = useState([])
 
   // Debounce поиска
   const debouncedSearch = useDebounce(searchQuery, 300)
 
-  const mainCategories = [
-    {
-      name: 'Стики',
-      icon: '🚬',
-      subCategories: ['Terea kz', 'Парламент ru', 'Heets kz', 'FiiT ru/kz', 'Terea arm', 'Terea eu/ind']
-    },
-    {
-      name: 'Устройства',
-      icon: '📱',
-      subCategories: ['IQOS LIL SOLID DUAL', 'Iqos duos original', 'Iqos Original One', 'Iqos iluma one', 'Iqos iluma', 'Iqos iluma prime', 'Iqos iluma i series prime']
+  // Загрузка категорий при монтировании
+  useEffect(() => {
+    loadCategories()
+  }, [])
+
+  const loadCategories = async () => {
+    try {
+      const response = await api.getCategories()
+      const cats = response.data
+      setCategories(cats)
+      
+      // Группируем категории по типам
+      const devices = cats.filter(c => c.type === 'devices')
+      const sticks = cats.filter(c => c.type === 'sticks')
+      
+      setMainCategories([
+        {
+          name: 'Стики',
+          icon: '🚬',
+          type: 'sticks',
+          subCategories: sticks.map(c => c.name)
+        },
+        {
+          name: 'Устройства',
+          icon: '📱',
+          type: 'devices',
+          subCategories: devices.map(c => c.name)
+        }
+      ])
+    } catch (error) {
+      console.error('Ошибка загрузки категорий:', error)
     }
-  ]
+  }
 
   // Check for category parameter in URL on mount
   useEffect(() => {
