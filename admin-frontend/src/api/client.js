@@ -20,6 +20,8 @@ apiClient.interceptors.request.use((config) => {
 export const api = {
   // Dashboard
   getDashboard: () => apiClient.get('/api/admin/dashboard'),
+  getDailyStats: (params) => apiClient.get('/api/admin/stats/daily', { params }),
+  getMonthlyStats: (params) => apiClient.get('/api/admin/stats/monthly', { params }),
   
   // Products
   getProducts: (params) => apiClient.get('/api/admin/products', { params }),

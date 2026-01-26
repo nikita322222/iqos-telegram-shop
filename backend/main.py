@@ -1007,6 +1007,154 @@ def get_admin_dashboard(
     }
 
 
+@app.get("/api/admin/stats/daily")
+def get_daily_stats(
+    start_date: str = None,
+    end_date: str = None,
+    admin: models.User = Depends(get_current_admin),
+    db: Session = Depends(get_db)
+):
+    """Статистика по дням"""
+    from datetime import datetime, timedelta
+    
+    # Если даты не указаны, берем последние 30 дней
+    if not end_date:
+        end = datetime.utcnow().date()
+    else:
+        end = datetime.strptime(end_date, "%Y-%m-%d").date()
+    
+    if not start_date:
+        start = end - timedelta(days=29)
+    else:
+        start = datetime.strptime(start_date, "%Y-%m-%d").date()
+    
+    # Получаем все заказы за период
+    orders = db.query(models.Order).filter(
+        func.date(models.Order.created_at) >= start,
+        func.date(models.Order.created_at) <= end
+    ).all()
+    
+    # Получаем новых пользователей за период
+    users = db.query(models.User).filter(
+        func.date(models.User.created_at) >= start,
+        func.date(models.User.created_at) <= end
+    ).all()
+    
+    # Группируем по дням
+    daily_stats = {}
+    current_date = start
+    while current_date <= end:
+        date_str = current_date.strftime("%Y-%m-%d")
+        daily_stats[date_str] = {
+            "date": date_str,
+            "orders_count": 0,
+            "revenue": 0.0,
+            "new_customers": 0
+        }
+        current_date += timedelta(days=1)
+    
+    # Заполняем статистику заказов
+    for order in orders:
+        date_str = order.created_at.date().strftime("%Y-%m-%d")
+        if date_str in daily_stats:
+            daily_stats[date_str]["orders_count"] += 1
+            daily_stats[date_str]["revenue"] += float(order.total_amount)
+    
+    # Заполняем статистику новых пользователей
+    for user in users:
+        date_str = user.created_at.date().strftime("%Y-%m-%d")
+        if date_str in daily_stats:
+            daily_stats[date_str]["new_customers"] += 1
+    
+    # Преобразуем в список и сортируем
+    result = sorted(daily_stats.values(), key=lambda x: x["date"])
+    
+    return {
+        "period": {
+            "start": start.strftime("%Y-%m-%d"),
+            "end": end.strftime("%Y-%m-%d")
+        },
+        "stats": result,
+        "totals": {
+            "orders_count": sum(s["orders_count"] for s in result),
+            "revenue": sum(s["revenue"] for s in result),
+            "new_customers": sum(s["new_customers"] for s in result)
+        }
+    }
+
+
+@app.get("/api/admin/stats/monthly")
+def get_monthly_stats(
+    start_month: str = None,
+    end_month: str = None,
+    admin: models.User = Depends(get_current_admin),
+    db: Session = Depends(get_db)
+):
+    """Статистика по месяцам"""
+    from datetime import datetime
+    from dateutil.relativedelta import relativedelta
+    
+    # Если месяцы не указаны, берем последние 12 месяцев
+    if not end_month:
+        end = datetime.utcnow().date().replace(day=1)
+    else:
+        end = datetime.strptime(end_month + "-01", "%Y-%m-%d").date()
+    
+    if not start_month:
+        start = end - relativedelta(months=11)
+    else:
+        start = datetime.strptime(start_month + "-01", "%Y-%m-%d").date()
+    
+    # Получаем все заказы
+    orders = db.query(models.Order).all()
+    
+    # Получаем всех пользователей
+    users = db.query(models.User).all()
+    
+    # Группируем по месяцам
+    monthly_stats = {}
+    current_month = start
+    while current_month <= end:
+        month_str = current_month.strftime("%Y-%m")
+        monthly_stats[month_str] = {
+            "month": month_str,
+            "month_name": current_month.strftime("%B %Y"),
+            "orders_count": 0,
+            "revenue": 0.0,
+            "new_customers": 0
+        }
+        current_month = current_month + relativedelta(months=1)
+    
+    # Заполняем статистику заказов
+    for order in orders:
+        month_str = order.created_at.date().strftime("%Y-%m")
+        if month_str in monthly_stats:
+            monthly_stats[month_str]["orders_count"] += 1
+            monthly_stats[month_str]["revenue"] += float(order.total_amount)
+    
+    # Заполняем статистику новых пользователей
+    for user in users:
+        month_str = user.created_at.date().strftime("%Y-%m")
+        if month_str in monthly_stats:
+            monthly_stats[month_str]["new_customers"] += 1
+    
+    # Преобразуем в список и сортируем
+    result = sorted(monthly_stats.values(), key=lambda x: x["month"])
+    
+    return {
+        "period": {
+            "start": start.strftime("%Y-%m"),
+            "end": end.strftime("%Y-%m")
+        },
+        "stats": result,
+        "totals": {
+            "orders_count": sum(s["orders_count"] for s in result),
+            "revenue": sum(s["revenue"] for s in result),
+            "new_customers": sum(s["new_customers"] for s in result)
+        }
+    }
+
+
 # Products Management
 @app.get("/api/admin/products")
 def get_admin_products(
