@@ -1170,7 +1170,7 @@ def get_customers(
 
 
 # Orders Management
-@app.get("/api/admin/orders")
+@app.get("/api/admin/orders", response_model=List[schemas.Order])
 def get_admin_orders(
     status: str = None,
     delivery_type: str = None,
@@ -1181,7 +1181,12 @@ def get_admin_orders(
     db: Session = Depends(get_db)
 ):
     """Получение всех заказов для админа"""
-    query = db.query(models.Order)
+    from sqlalchemy.orm import joinedload
+    
+    query = db.query(models.Order).options(
+        joinedload(models.Order.items).joinedload(models.OrderItem.product),
+        joinedload(models.Order.user)
+    )
     
     if status:
         query = query.filter(models.Order.status == status)
@@ -1198,6 +1203,7 @@ def get_admin_orders(
         )
     
     orders = query.order_by(models.Order.created_at.desc()).offset(skip).limit(limit).all()
+    return orders
     return orders
 
 
