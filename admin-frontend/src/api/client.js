@@ -48,6 +48,9 @@ export const api = {
   
   // Customers
   getCustomers: (params) => apiClient.get('/api/admin/customers', { params }),
+  addCustomer: (data) => apiClient.post('/api/admin/customers', data),
+  deleteCustomer: (id) => apiClient.delete(`/api/admin/customers/${id}`),
+  activateCustomer: (id) => apiClient.post(`/api/admin/customers/${id}/activate`),
   
   // Broadcasts
   getBroadcasts: (params) => apiClient.get('/api/admin/broadcasts', { params }),

@@ -1342,6 +1342,136 @@ def get_customers(
     return customers
 
 
+@app.post("/api/admin/customers")
+async def add_customer(
+    customer_data: dict,
+    admin: models.User = Depends(get_current_admin),
+    db: Session = Depends(get_db)
+):
+    """Добавление нового клиента по username или telegram_id"""
+    import httpx
+    
+    telegram_id = customer_data.get('telegram_id')
+    username = customer_data.get('username')
+    
+    if not telegram_id and not username:
+        raise HTTPException(status_code=400, detail="Укажите telegram_id или username")
+    
+    # Если указан telegram_id, проверяем что пользователь существует
+    if telegram_id:
+        # Проверяем, не добавлен ли уже
+        existing = db.query(models.User).filter(
+            models.User.telegram_id == telegram_id
+        ).first()
+        
+        if existing:
+            if existing.is_active:
+                raise HTTPException(status_code=400, detail="Пользователь уже добавлен")
+            else:
+                # Активируем заблокированного пользователя
+                existing.is_active = True
+                db.commit()
+                db.refresh(existing)
+                return {"message": "Пользователь активирован", "user": existing}
+        
+        # Получаем информацию о пользователе из Telegram
+        try:
+            bot_token = settings.bot_token
+            async with httpx.AsyncClient() as client:
+                response = await client.get(
+                    f"https://api.telegram.org/bot{bot_token}/getChat",
+                    params={"chat_id": telegram_id},
+                    timeout=10.0
+                )
+                
+                if response.status_code == 200:
+                    data = response.json()
+                    if data.get('ok'):
+                        chat = data['result']
+                        
+                        # Создаем пользователя
+                        new_user = models.User(
+                            telegram_id=telegram_id,
+                            username=chat.get('username'),
+                            first_name=chat.get('first_name'),
+                            last_name=chat.get('last_name'),
+                            is_active=True
+                        )
+                        db.add(new_user)
+                        db.commit()
+                        db.refresh(new_user)
+                        
+                        return {"message": "Пользователь добавлен", "user": new_user}
+                    else:
+                        raise HTTPException(status_code=400, detail="Пользователь не найден в Telegram")
+                else:
+                    raise HTTPException(status_code=400, detail="Не удалось получить данные из Telegram")
+        except Exception as e:
+            print(f"Ошибка получения данных из Telegram: {e}")
+            # Создаем пользователя без дополнительных данных
+            new_user = models.User(
+                telegram_id=telegram_id,
+                is_active=True
+            )
+            db.add(new_user)
+            db.commit()
+            db.refresh(new_user)
+            
+            return {"message": "Пользователь добавлен (без данных из Telegram)", "user": new_user}
+    
+    # Если указан только username
+    if username:
+        # Убираем @ если есть
+        username = username.lstrip('@')
+        
+        raise HTTPException(
+            status_code=400, 
+            detail="Добавление по username не поддерживается. Используйте Telegram ID. Пользователь может получить свой ID через бота @userinfobot"
+        )
+
+
+@app.delete("/api/admin/customers/{user_id}")
+def delete_customer(
+    user_id: int,
+    admin: models.User = Depends(get_current_admin),
+    db: Session = Depends(get_db)
+):
+    """Удаление (деактивация) клиента"""
+    user = db.query(models.User).filter(models.User.id == user_id).first()
+    
+    if not user:
+        raise HTTPException(status_code=404, detail="Пользователь не найден")
+    
+    # Проверяем что это не админ
+    if user.role == 'admin':
+        raise HTTPException(status_code=400, detail="Нельзя удалить администратора")
+    
+    # Деактивируем пользователя вместо удаления
+    user.is_active = False
+    db.commit()
+    
+    return {"message": "Пользователь деактивирован"}
+
+
+@app.post("/api/admin/customers/{user_id}/activate")
+def activate_customer(
+    user_id: int,
+    admin: models.User = Depends(get_current_admin),
+    db: Session = Depends(get_db)
+):
+    """Активация клиента"""
+    user = db.query(models.User).filter(models.User.id == user_id).first()
+    
+    if not user:
+        raise HTTPException(status_code=404, detail="Пользователь не найден")
+    
+    user.is_active = True
+    db.commit()
+    db.refresh(user)
+    
+    return {"message": "Пользователь активирован", "user": user}
+
+
 # Orders Management
 @app.get("/api/admin/orders", response_model=List[schemas.Order])
 def get_admin_orders(
