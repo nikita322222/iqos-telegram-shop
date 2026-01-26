@@ -53,10 +53,17 @@ function Products() {
     setUploading(true)
     try {
       const response = await api.uploadImage(file)
-      setFormData({ ...formData, image_url: response.data.image_url })
+      
+      if (response.data.image_url) {
+        setFormData({ ...formData, image_url: response.data.image_url })
+        alert('✅ ' + (response.data.message || 'Изображение загружено'))
+      } else {
+        alert('⚠️ ' + (response.data.message || 'Не удалось получить URL изображения'))
+      }
     } catch (error) {
       console.error('Ошибка загрузки изображения:', error)
-      alert('Ошибка загрузки изображения')
+      const errorMsg = error.response?.data?.detail || error.message || 'Неизвестная ошибка'
+      alert('❌ Ошибка загрузки: ' + errorMsg)
     } finally {
       setUploading(false)
     }
@@ -288,12 +295,25 @@ function Products() {
                   disabled={uploading}
                   style={{ marginBottom: '12px' }}
                 />
-                {uploading && <div>Загрузка...</div>}
+                {uploading && <div style={{ color: 'var(--primary-color)', marginBottom: '12px' }}>⏳ Загрузка...</div>}
+                
+                <div style={{ marginTop: '12px' }}>
+                  <label className="form-label">Или введите URL изображения:</label>
+                  <input
+                    type="url"
+                    className="form-input"
+                    placeholder="https://example.com/image.jpg"
+                    value={formData.image_url}
+                    onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
+                  />
+                </div>
+                
                 {formData.image_url && (
                   <img 
                     src={formData.image_url} 
                     alt="Preview"
                     className="image-preview"
+                    style={{ marginTop: '12px' }}
                   />
                 )}
               </div>
