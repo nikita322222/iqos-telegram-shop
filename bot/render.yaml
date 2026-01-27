@@ -1,0 +1,15 @@
+services:
+  - type: worker
+    name: iqos-telegram-bot
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: python main.py
+    envVars:
+      - key: BOT_TOKEN
+        sync: false
+      - key: BACKEND_URL
+        value: https://iqos-backend.onrender.com
+      - key: MINI_APP_URL
+        value: https://iqos-shop.vercel.app
+      - key: ADMIN_GROUP_ID
+        value: "-1003553312128"
