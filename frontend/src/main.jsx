@@ -16,8 +16,10 @@ if (window.Telegram?.WebApp) {
   // Отключаем закрытие при свайпе вниз
   tg.isClosingConfirmationEnabled = true
   
-  // Устанавливаем цвет заголовка
-  tg.setHeaderColor('#FFFFFF')
+  // Устанавливаем цвет заголовка в зависимости от темы
+  const isDark = tg.colorScheme === 'dark'
+  tg.setHeaderColor(isDark ? '#1c1c1e' : '#FFFFFF')
+  tg.setBackgroundColor(isDark ? '#000000' : '#FFFFFF')
   
   // Готовность приложения
   tg.ready()

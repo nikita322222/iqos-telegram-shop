@@ -39,7 +39,7 @@
 ### Backend
 - **FastAPI** - современный веб-фреймворк
 - **SQLAlchemy** - ORM для работы с БД
-- **PostgreSQL** - основная база данных
+- **PostgreSQL (Supabase)** - основная база данных
 - **Supabase Storage** - хранение изображений
 - **Pydantic** - валидация данных
 
@@ -159,12 +159,23 @@ python main.py
 
 ## 🌐 Деплой
 
+### База данных (Supabase)
+1. Создайте проект на https://supabase.com
+2. Выберите регион **Frankfurt** (ближе к пользователям)
+3. Скопируйте Connection String (Session pooler)
+4. Используйте для миграции данных
+
 ### Backend (Render)
 1. Подключите GitHub репозиторий
 2. Выберите `backend` как Root Directory
 3. Build Command: `pip install -r requirements.txt`
 4. Start Command: `uvicorn main:app --host 0.0.0.0 --port $PORT`
-5. Добавьте переменные окружения
+5. Добавьте переменные окружения:
+   - `DATABASE_URL` - Supabase connection string
+   - `BOT_TOKEN` - Telegram bot token
+   - `SECRET_KEY` - секретный ключ
+   - `SUPABASE_URL` - URL Supabase проекта
+   - `SUPABASE_KEY` - API ключ Supabase
 
 ### Frontend (Vercel)
 ```bash
@@ -178,11 +189,16 @@ cd admin-frontend
 vercel --prod
 ```
 
-### Bot
-Запустите на сервере или локально:
-```bash
-python bot/main.py
-```
+### Bot (Render Background Worker)
+1. Создайте Background Worker на Render
+2. Root Directory: `bot`
+3. Build Command: `pip install -r requirements.txt`
+4. Start Command: `python main.py`
+5. Добавьте переменные окружения:
+   - `BOT_TOKEN` - Telegram bot token
+   - `BACKEND_URL` - URL бэкенда
+   - `MINI_APP_URL` - URL клиентского приложения
+   - `ADMIN_GROUP_ID` - ID группы для уведомлений
 
 ## � Безопасность
 
@@ -248,6 +264,12 @@ python backend/add_admin_279680413.py
 
 ## 📊 База данных
 
+### Supabase PostgreSQL
+- **Бесплатный план**: 500 MB, неограниченные запросы
+- **Регион**: Frankfurt (EU West)
+- **Автоматические бэкапы**: 7 дней
+- **Connection pooling**: Session pooler для стабильности
+
 ### Основные таблицы
 - `users` - пользователи и админы
 - `products` - товары
@@ -258,6 +280,16 @@ python backend/add_admin_279680413.py
 - `saved_addresses` - сохраненные адреса
 - `bonus_transactions` - история бонусов
 - `broadcasts` - рассылки
+
+### Миграция данных
+Для переноса данных используйте:
+```bash
+# Экспорт из старой БД
+pg_dump "old_database_url" > backup.sql
+
+# Импорт в Supabase
+psql "supabase_connection_string" < backup.sql
+```
 
 ## 🔄 Миграции
 

@@ -21,6 +21,14 @@ export const ThemeProvider = ({ children }) => {
     document.body.setAttribute('data-theme', theme)
     // Сохраняем в localStorage
     localStorage.setItem('theme', theme)
+    
+    // Обновляем цвет header в Telegram
+    if (window.Telegram?.WebApp) {
+      const tg = window.Telegram.WebApp
+      const isDark = theme === 'dark'
+      tg.setHeaderColor(isDark ? '#1c1c1e' : '#FFFFFF')
+      tg.setBackgroundColor(isDark ? '#000000' : '#FFFFFF')
+    }
   }, [theme])
 
   const toggleTheme = () => {
